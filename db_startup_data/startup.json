@@ -1,0 +1,214 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "serial_number": "kritis3m1_module",
+      "network_index": 1,
+      "locality": "regensburg",
+      "configs": [
+        {
+          "id": 1,
+          "node_id": 1,
+          "hb_interval": 24,
+          "whitelist": {
+            "id": 1,
+            "config_id": 1,
+            "trusted_clients": [
+              {
+                "id": 1,
+                "whitelist_id": 1,
+                "client_ip_port": "192.168.0.4:*"
+              },
+              {
+                "id": 2,
+                "whitelist_id": 1,
+                "client_ip_port": "192.168.3.1:*"
+              },
+              {
+                "id": 3,
+                "whitelist_id": 1,
+                "client_ip_port": "192.168.3.2:*"
+              },
+              {
+                "id": 4,
+                "whitelist_id": 1,
+                "client_ip_port": "192.168.3.3:*"
+              },
+              {
+                "id": 5,
+                "whitelist_id": 1,
+                "client_ip_port": "192.168.3.4:*"
+              },
+              {
+                "id": 6,
+                "whitelist_id": 1,
+                "client_ip_port": "192.168.3.5:*"
+              },
+              {
+                "id": 7,
+                "whitelist_id": 1,
+                "client_ip_port": "192.168.3.6:*"
+              }
+            ]
+          },
+          "applications": [
+            {
+              "id": 1,
+              "type": 0,
+              "state": true,
+              "server_ip_port": "192.168.0.4:19378",
+              "client_ip_port": "192.168.0.4:8000",
+              "ep1_id": 1
+            },
+            {
+              "id": 2,
+              "type": 1,
+              "state": true,
+              "server_ip_port": "192.168.0.4:8000",
+              "client_ip_port": "192.168.0.4:19379",
+              "ep1_id": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "serial_number": "asbasdfsdfs",
+      "network_index": 2,
+      "locality": "regensburg",
+      "configs": [
+        {
+          "id": 2,
+          "node_id": 2,
+          "hb_interval": 24,
+          "whitelist": {
+            "id": 2,
+            "config_id": 2,
+            "trusted_clients": [
+              {
+                "id": 10,
+                "whitelist_id": 2,
+                "client_ip_port": "192.168.3.0:*"
+              },
+              {
+                "id": 11,
+                "whitelist_id": 2,
+                "client_ip_port": "192.168.3.1:*"
+              },
+              {
+                "id": 12,
+                "whitelist_id": 2,
+                "client_ip_port": "192.168.3.2:*"
+              },
+              {
+                "id": 13,
+                "whitelist_id": 2,
+                "client_ip_port": "192.168.3.3:*"
+              },
+              {
+                "id": 14,
+                "whitelist_id": 2,
+                "client_ip_port": "192.168.3.4:*"
+              },
+              {
+                "id": 15,
+                "whitelist_id": 2,
+                "client_ip_port": "192.168.3.5:*"
+              },
+              {
+                "id": 16,
+                "whitelist_id": 2,
+                "client_ip_port": "192.168.3.6:*"
+              }
+            ]
+          },
+          "applications": [
+            {
+              "id": 5,
+              "type": 0,
+              "state": true,
+              "server_ip_port": "192.168.0.5:8080",
+              "client_ip_port": "192.168.0.5:1232",
+              "ep1_id": 1
+            },
+            {
+              "id": 6,
+              "type": 1,
+              "state": true,
+              "server_ip_port": "192.168.0.5:8000",
+              "client_ip_port": "192.168.0.5:1234",
+              "ep1_id": 1
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "crypto": [
+    {
+      "id": 1,
+      "name": "Endpoint1",
+      "mutual_auth": true,
+      "no_encrypt": false,
+      "kex": 0,
+      "signature_mode": 1,
+      "keylog": true,
+      "use_secure_elem": false,
+      "identity_id": 1 
+    },
+    {
+      "id": 2,
+      "name": "Endpoint2",
+      "mutual_auth": true,
+      "no_encrypt": false,
+      "kex": 0,
+      "signature_mode": 1,
+      "keylog": true,
+      "use_secure_elem": false,
+      "identity_id": 2 
+    },
+    {
+
+      "id": 3,
+      "name": "Endpoint3",
+      "mutual_auth": true,
+      "no_encrypt": false,
+      "kex": 0,
+      "signature_mode": 1,
+      "keylog": true,
+      "use_secure_elem": false,
+      "identity_id": 3
+    }
+  ],
+  "pki_identities": [
+    {
+      "id": 1,
+      "network_idenity": 0,
+      "server_addr": "192.168.0.1:1231",
+      "server_url": "",
+      "revocation_list_url": ""
+    },
+    {
+      "id": 2,
+      "network_idenity": 0,
+      "server_addr": "192.168.0.1:1231",
+      "server_url": "",
+      "revocation_list_url": ""
+    },
+    {
+      "id": 3,
+      "network_idenity": 0,
+      "server_addr": "192.168.0.1:1231",
+      "server_url": "",
+      "revocation_list_url": ""
+    },
+    {
+      "id": 4,
+      "network_idenity": 0,
+      "server_addr": "192.168.0.1:1231",
+      "server_url": "",
+      "revocation_list_url": ""
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+/.vscode/
+/.dbeaver/
+/.project/
+go.sum
+
+keylog.txt
+acl.json
+db.sqlite
+log.sqlite
+Script.sql
+
+/Scripts/
+
+*.sh
+*.pem
