@@ -32,10 +32,11 @@ import (
 
 // Headscale represents the base app of the service.
 type Kritis3m_Scale struct {
-	cfg    *types.Config
-	db     *db.KSDatabase
-	log_db *db.KSDatabase
-	server http.Server
+	cfg             *types.Config
+	db              *db.KSDatabase
+	log_db          *db.KSDatabase
+	server          http.Server
+	insecure_server http.Server
 }
 
 // type Kritis3m_Server struct {
@@ -81,6 +82,8 @@ func NewKritis3m_scale(cfg *types.Config) (*Kritis3m_Scale, error) {
 	app.server = http.Server{
 		Handler: router,
 	}
+	app.insecure_server = http.Server{
+		Handler: router}
 	return &app, nil
 }
 
@@ -271,24 +274,41 @@ func (ks *Kritis3m_Scale) ListNodes(id int, includeConfig bool) {
 // launches a GIN server with Kritis3m_api
 func (ks *Kritis3m_Scale) Serve() {
 
-	serverEndpoint := asl.ASLsetupServerEndpoint(&ks.cfg.NodeServer.ASL_Endpoint)
-	if serverEndpoint == nil {
-		fmt.Println("Error setting up server endpoint")
-		os.Exit(1)
-	}
-	defer asl.ASLFreeEndpoint(serverEndpoint)
-	addr, err := net.ResolveTCPAddr("tcp", ks.cfg.NodeServer.Address)
-	if err != nil {
-		log.Err(err).Msg("cant parse ip adress correctly")
-		log.Fatal()
-	}
-	tcpListener, _ := net.ListenTCP("tcp", addr)
+	go func() {
+		serverEndpoint := asl.ASLsetupServerEndpoint(&ks.cfg.NodeServer.ASL_Endpoint)
+		if serverEndpoint == nil {
+			fmt.Println("Error setting up server endpoint")
+			os.Exit(1)
+		}
+		defer asl.ASLFreeEndpoint(serverEndpoint)
+		addr, err := net.ResolveTCPAddr("tcp", ks.cfg.NodeServer.Address)
+		if err != nil {
+			log.Err(err).Msg("cant parse ip address correctly")
+			log.Fatal()
+		}
+		tcpListener, _ := net.ListenTCP("tcp", addr)
 
-	aslListener := node_server.ASLListener{
-		L:  tcpListener,
-		Ep: serverEndpoint,
-	}
-	ks.server.Serve(aslListener)
+		aslListener := node_server.ASLListener{
+			L:  tcpListener,
+			Ep: serverEndpoint,
+		}
+		ks.server.Serve(aslListener)
+	}()
+
+	go func() {
+
+		addr_http, err := net.ResolveTCPAddr("tcp", ks.cfg.NodeServer.AddressHTTP)
+		if err != nil {
+			log.Err(err).Msg("cant parse ip adress correctly")
+			log.Fatal()
+		}
+
+		tcpListener, _ := net.ListenTCP("tcp", addr_http)
+
+		ks.insecure_server.Serve(tcpListener)
+
+	}()
+	select {}
 	log.Info().Msg("server down")
 
 }

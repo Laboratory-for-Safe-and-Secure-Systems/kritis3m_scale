@@ -63,6 +63,7 @@ type DatabaseConfig struct {
 
 type NodeServerConfig struct {
 	Address      string
+	AddressHTTP  string
 	ASL_Config   asl.ASLConfig
 	ASL_Endpoint asl.EndpointConfig
 }
@@ -237,6 +238,7 @@ func parse_endpoint(ep_yaml *KS_EndpointConfig) asl.EndpointConfig {
 func GetNodeServerConfig() NodeServerConfig {
 	var ks_ep_config KS_EndpointConfig
 	address := viper.GetString("node_server.address")
+	address_http := viper.GetString("node_server.address_http")
 
 	ks_ep_config.MutualAuthentication = viper.GetBool("node_server.endpoint_config.mutual_authentication")
 	if !viper.IsSet("node_server.endpoint_config.mutual_authentication") {
@@ -292,6 +294,7 @@ func GetNodeServerConfig() NodeServerConfig {
 
 	return NodeServerConfig{
 		Address:      address,
+		AddressHTTP:  address_http,
 		ASL_Endpoint: parse_endpoint(&ks_ep_config),
 	}
 }

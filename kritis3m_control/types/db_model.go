@@ -173,26 +173,20 @@ type DBApplication struct {
 type Kritis3mAddr struct {
 	IP     net.IP       `json:"-" gorm:"type:varbinary(16)"` // To store up to 16 bytes (IPv6) // 0.0.0.0 for all ports
 	IPStr  string       `json:"ip" gorm:"-" `
-	Family ProtoFamiliy `json:"familiy"`
+	Family ProtoFamiliy `json:"family"`
 	Port   uint16       `json:"port"` // 0 for all ports
 }
 
-// struct to json
 func (e Kritis3mAddr) MarshalJSON() ([]byte, error) {
-	// Convert IP to string for JSON serialization
-	e.IPStr = e.IP.String()
-
-	// Determine IP family
-	var family ProtoFamiliy
-	if ip4 := e.IP.To4(); ip4 != nil {
-		family = AF_INET
-	} else if e.IP.To16() != nil {
-		family = AF_INET6
-	} else {
-		return nil, fmt.Errorf("invalid IP address: %v", e.IP)
+	type Alias Kritis3mAddr
+	aux := struct {
+		IPStr string `json:"ip"`
+		Alias
+	}{
+		IPStr: e.IP.String(),
+		Alias: (Alias)(e),
 	}
-	e.Family = family
-	return json.Marshal(e)
+	return json.Marshal(aux)
 }
 
 // Custom JSON Unmarshaling
