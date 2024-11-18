@@ -31,7 +31,7 @@ func init() {
 }
 
 func initConfig() {
-	cfgFile, _ = filepath.Abs("/home/philipp/kritis/kritis3m_scale/config.yaml")
+	cfgFile, _ = filepath.Abs("/home/philipp/kritis/kritis3m_scale2/kritis3m_scale/config.yaml")
 	if cfgFile != "" {
 		err := types.LoadConfig(cfgFile, true)
 		if err != nil {

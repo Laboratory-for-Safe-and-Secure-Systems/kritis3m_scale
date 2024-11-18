@@ -1,6 +1,9 @@
 package types
 
 import (
+	"encoding/json"
+	"fmt"
+	"net"
 	"time"
 
 	"github.com/Laboratory-for-Safe-and-Secure-Systems/go-wolfssl/asl"
@@ -22,6 +25,14 @@ const (
 	NetworkTester  ApplicationType = 5 //server and client tls endpoint
 	TcpStdinBridge ApplicationType = 6 //server and client tls endpoint
 
+)
+
+// see linux/sys/socket.h PF_INET=2 &PF_INET6=10
+type ProtoFamiliy uint8
+
+const (
+	AF_INET  ProtoFamiliy = 2
+	AF_INET6 ProtoFamiliy = 10
 )
 
 func (a ApplicationType) String() string {
@@ -57,12 +68,62 @@ type DistributionResponse struct {
 	Identities   []*DBIdentity          `json:"identities"`
 }
 
+type HeartbeatInstruction uint8
+
+const (
+	CallDistributionService HeartbeatInstruction = 0
+	PostSystemStatus        HeartbeatInstruction = 1
+	ChangeHeartbeatInterval HeartbeatInstruction = 2 //server and client tls endpoint
+	ChangeLogLevel          HeartbeatInstruction = 3 //server and client tls endpoint
+	UptoDate                HeartbeatInstruction = 4
+)
+
+type NodeState uint8
+
+const (
+	NotSeen  NodeState = 0
+	Running  NodeState = 1
+	Updating NodeState = 2 //server and client tls endpoint
+)
+
+func (a NodeState) String() string {
+	switch a {
+	case NotSeen:
+		return "not seen"
+	case Running:
+		return "running"
+	case Updating:
+		return "updating"
+	default:
+		return "unknown state"
+	}
+}
+
+func (a HeartbeatInstruction) String() string {
+	switch a {
+	case CallDistributionService:
+		return "Call Distrib"
+	case PostSystemStatus:
+		return "post status"
+	case ChangeHeartbeatInterval:
+		return "change hb iv"
+	case ChangeLogLevel:
+		return "change log lvl"
+	case UptoDate:
+		return "no instruction"
+	default:
+		return "unknown instruction"
+	}
+}
+
 type SelectedConfiguration struct {
 	gorm.Model
-	NodeID   uint
-	Node     DBNode `gorm:"foreignKey:NodeID"`
-	ConfigID uint
-	Config   DBNodeConfig `gorm:"foreignKey:ConfigID"`
+	NodeID               uint
+	Node                 DBNode `gorm:"foreignKey:NodeID"`
+	ConfigID             uint
+	Config               DBNodeConfig         `gorm:"foreignKey:ConfigID"`
+	State                NodeState            `gorm:"default:0"` // Not seen
+	HeartbeatInstruction HeartbeatInstruction `gorm:"default:0"` // cal distribution service
 } // Node represents a node within a network
 
 type DBNode struct {
@@ -100,14 +161,70 @@ type DBApplication struct {
 	TrustedClients []*DBTrustedClients `gorm:"many2many:application_trusts_clients" json:"-"`
 	Type           ApplicationType     `json:"type"`
 
-	ListeningIpPort string `json:"server_ip_port"`
-	ClientIpPort    string `json:"client_ip_port"`
+	ListeningIpPort Kritis3mAddr `gorm:"embedded;embeddedPrefix:listening_ip_" json:"server_ip_port"`
+	ClientIpPort    Kritis3mAddr `gorm:"embedded;embeddedPrefix:client_ip_" json:"client_ip_port"`
 
 	Ep1ID uint                 `json:"ep1_id,omitempty"`
 	Ep1   *DBAslEndpointConfig `json:"-" gorm:"foreignKey:Ep1ID"`
 
 	Ep2ID uint                 `json:"ep2_id,omitempty"`
 	Ep2   *DBAslEndpointConfig `json:"-" gorm:"foreignKey:Ep2ID"`
+}
+type Kritis3mAddr struct {
+	IP     net.IP       `json:"-" gorm:"type:varbinary(16)"` // To store up to 16 bytes (IPv6) // 0.0.0.0 for all ports
+	IPStr  string       `json:"ip" gorm:"-" `
+	Family ProtoFamiliy `json:"familiy"`
+	Port   uint16       `json:"port"` // 0 for all ports
+}
+
+// struct to json
+func (e Kritis3mAddr) MarshalJSON() ([]byte, error) {
+	// Convert IP to string for JSON serialization
+	e.IPStr = e.IP.String()
+
+	// Determine IP family
+	var family ProtoFamiliy
+	if ip4 := e.IP.To4(); ip4 != nil {
+		family = AF_INET
+	} else if e.IP.To16() != nil {
+		family = AF_INET6
+	} else {
+		return nil, fmt.Errorf("invalid IP address: %v", e.IP)
+	}
+	e.Family = family
+	return json.Marshal(e)
+}
+
+// Custom JSON Unmarshaling
+// json to struct
+func (addr *Kritis3mAddr) UnmarshalJSON(data []byte) error {
+	type RecursionBreaker *Kritis3mAddr
+	var recBreaker RecursionBreaker
+	recBreaker = (RecursionBreaker)(addr)
+
+	if err := json.Unmarshal(data, recBreaker); err != nil {
+		fmt.Print(err)
+		return err
+	}
+
+	//ip and family are missing
+	addr.IP = net.ParseIP(recBreaker.IPStr)
+	if addr.IP == nil {
+		return fmt.Errorf("can't parse ipstr to IP")
+	}
+	addr.IPStr = recBreaker.IPStr
+	var family ProtoFamiliy
+
+	if ip4 := recBreaker.IP.To4(); ip4 != nil {
+		family = AF_INET
+	} else if recBreaker.IP.To16() != nil {
+		family = AF_INET6
+	} else {
+		return fmt.Errorf("invalid IP address: %v", recBreaker.IPStr)
+	}
+	addr.Family = family
+
+	return nil
 }
 
 type DBWhitelist struct {
@@ -129,12 +246,10 @@ type DBTrustedClients struct {
 	DeletedAt               gorm.DeletedAt   `json:"-" gorm:"index"`
 	ID                      uint             `gorm:"primarykey:id" json:"id"`
 	WhitelistID             uint             `json:"-"`
-	ClientIpPort            string           `json:"client_ip_port"`
+	ClientIpPort            Kritis3mAddr     `gorm:"embedded" json:"client_ip_port"`
 	ApplicationIDs          []uint           `gorm:"-" json:"application_ids" `
 	ApplicationTrustsClient []*DBApplication `gorm:"many2many:application_trusts_clients;" json:"-"`
 }
-
-// ProxyApplication defines settings for a proxy application
 
 // StandardApplication defines settings for a standard application
 type DBAslEndpointConfig struct {
@@ -160,7 +275,7 @@ type DBIdentity struct {
 	DeletedAt         gorm.DeletedAt `json:"-" gorm:"index"`
 	ID                uint           `gorm:"primarykey" json:"id"`
 	Identity          uint           `json:"identity"`
-	ServerAddr        string         `json:"server_addr"`
+	ServerAddr        Kritis3mAddr   `gorm:"embedded" json:"server_addr"`
 	ServerUrl         string         `json:"server_url"`
 	RevocationListUrl string         `json:"revocation_list_url"`
 }

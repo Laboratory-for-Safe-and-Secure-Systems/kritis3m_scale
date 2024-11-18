@@ -17,37 +17,83 @@
               {
                 "id": 1,
                 "whitelist_id": 1,
-                "client_ip_port": "192.168.0.4:*"
+                "client_ip_port": {
+                  "ip": "192.168.0.1",
+                  "port": 0
+                }
               },
               {
                 "id": 2,
                 "whitelist_id": 1,
-                "client_ip_port": "192.168.3.1:*"
+                "client_ip_port": {
+                  "ip": "192.168.0.2",
+                  "port": 0
+                }
               },
               {
                 "id": 3,
                 "whitelist_id": 1,
-                "client_ip_port": "192.168.3.2:*"
+                "client_ip_port": {
+                  "ip": "192.168.0.3",
+                  "port": 0
+                }
               },
               {
                 "id": 4,
                 "whitelist_id": 1,
-                "client_ip_port": "192.168.3.3:*"
+                "client_ip_port": {
+                  "ip": "192.168.0.4",
+                  "port": 0
+                }
               },
               {
                 "id": 5,
                 "whitelist_id": 1,
-                "client_ip_port": "192.168.3.4:*"
+                "client_ip_port": {
+                  "ip": "192.168.0.5",
+                  "port": 0
+                }
               },
+
               {
                 "id": 6,
                 "whitelist_id": 1,
-                "client_ip_port": "192.168.3.5:*"
+                "client_ip_port": {
+                  "ip": "fd12:3456:789a:0001::1",
+                  "port": 0
+                }
               },
               {
                 "id": 7,
                 "whitelist_id": 1,
-                "client_ip_port": "192.168.3.6:*"
+                "client_ip_port": {
+                  "ip": "fd12:3456:789a:0001::2",
+                  "port": 0
+                }
+              },
+              {
+                "id": 8,
+                "whitelist_id": 1,
+                "client_ip_port": {
+                  "ip": "fd12:3456:789a:0001::3",
+                  "port": 0
+                }
+              },
+              {
+                "id": 9,
+                "whitelist_id": 1,
+                "client_ip_port": {
+                  "ip": "fd12:3456:789a:0001::4",
+                  "port": 0
+                }
+              },
+              {
+                "id": 10,
+                "whitelist_id": 1,
+                "client_ip_port": {
+                  "ip": "fd12:3456:789a:0001::5",
+                  "port": 0
+                }
               }
             ]
           },
@@ -56,16 +102,28 @@
               "id": 1,
               "type": 0,
               "state": true,
-              "server_ip_port": "192.168.0.4:19378",
-              "client_ip_port": "192.168.0.4:8000",
+              "server_ip_port": {
+                "ip": "fd12:3456:789a:0001::5",
+                "port": 1234
+              },
+              "client_ip_port": {
+                "ip": "192.168.0.1",
+                "port": 232
+              },
               "ep1_id": 1
             },
             {
               "id": 2,
               "type": 1,
               "state": true,
-              "server_ip_port": "192.168.0.4:8000",
-              "client_ip_port": "192.168.0.4:19379",
+              "client_ip_port": {
+                "ip": "192.168.0.1",
+                "port": 232
+              },
+              "server_ip_port": {
+                "ip": "192.168.0.1",
+                "port": 232
+              },
               "ep1_id": 1
             }
           ]
@@ -87,39 +145,85 @@
             "config_id": 2,
             "trusted_clients": [
               {
-                "id": 10,
-                "whitelist_id": 2,
-                "client_ip_port": "192.168.3.0:*"
+                "id": 20,
+                "whitelist_id": 1,
+                "client_ip_port": {
+                  "ip": "192.168.0.1",
+                  "port": 0
+                }
               },
               {
-                "id": 11,
-                "whitelist_id": 2,
-                "client_ip_port": "192.168.3.1:*"
+                "id": 21,
+                "whitelist_id": 1,
+                "client_ip_port": {
+                  "ip": "192.168.0.2",
+                  "port": 0
+                }
               },
               {
-                "id": 12,
-                "whitelist_id": 2,
-                "client_ip_port": "192.168.3.2:*"
+                "id": 22,
+                "whitelist_id": 1,
+                "client_ip_port": {
+                  "ip": "192.168.0.3",
+                  "port": 0
+                }
               },
               {
-                "id": 13,
-                "whitelist_id": 2,
-                "client_ip_port": "192.168.3.3:*"
+                "id": 23,
+                "whitelist_id": 1,
+                "client_ip_port": {
+                  "ip": "192.168.0.4",
+                  "port": 0
+                }
               },
               {
-                "id": 14,
-                "whitelist_id": 2,
-                "client_ip_port": "192.168.3.4:*"
+                "id": 24,
+                "whitelist_id": 1,
+                "client_ip_port": {
+                  "ip": "192.168.0.5",
+                  "port": 0
+                }
+              },
+
+              {
+                "id": 25,
+                "whitelist_id": 1,
+                "client_ip_port": {
+                  "ip": "fd12:3456:789a:0001::1",
+                  "port": 0
+                }
               },
               {
-                "id": 15,
-                "whitelist_id": 2,
-                "client_ip_port": "192.168.3.5:*"
+                "id": 26,
+                "whitelist_id": 1,
+                "client_ip_port": {
+                  "ip": "fd12:3456:789a:0001::2",
+                  "port": 0
+                }
               },
               {
-                "id": 16,
-                "whitelist_id": 2,
-                "client_ip_port": "192.168.3.6:*"
+                "id": 27,
+                "whitelist_id": 1,
+                "client_ip_port": {
+                  "ip": "fd12:3456:789a:0001::3",
+                  "port": 0
+                }
+              },
+              {
+                "id": 28,
+                "whitelist_id": 1,
+                "client_ip_port": {
+                  "ip": "fd12:3456:789a:0001::4",
+                  "port": 0
+                }
+              },
+              {
+                "id": 29,
+                "whitelist_id": 1,
+                "client_ip_port": {
+                  "ip": "fd12:3456:789a:0001::5",
+                  "port": 0
+                }
               }
             ]
           },
@@ -128,16 +232,28 @@
               "id": 5,
               "type": 0,
               "state": true,
-              "server_ip_port": "192.168.0.5:8080",
-              "client_ip_port": "192.168.0.5:1232",
+              "server_ip_port": {
+                "ip": "192.168.0.1",
+                "port": 232
+              },
+              "client_ip_port": {
+                "ip": "192.168.0.1",
+                "port": 232
+              },
               "ep1_id": 1
             },
             {
               "id": 6,
               "type": 1,
               "state": true,
-              "server_ip_port": "192.168.0.5:8000",
-              "client_ip_port": "192.168.0.5:1234",
+              "server_ip_port": {
+                "ip": "192.168.0.1",
+                "port": 232
+              },
+              "client_ip_port": {
+                "ip": "192.168.0.1",
+                "port": 232
+              },
               "ep1_id": 1
             }
           ]
@@ -155,7 +271,7 @@
       "signature_mode": 1,
       "keylog": true,
       "use_secure_elem": false,
-      "identity_id": 1 
+      "identity_id": 1
     },
     {
       "id": 2,
@@ -166,10 +282,9 @@
       "signature_mode": 1,
       "keylog": true,
       "use_secure_elem": false,
-      "identity_id": 2 
+      "identity_id": 2
     },
     {
-
       "id": 3,
       "name": "Endpoint3",
       "mutual_auth": true,
@@ -185,28 +300,40 @@
     {
       "id": 1,
       "network_idenity": 0,
-      "server_addr": "192.168.0.1:1231",
+      "server_addr": {
+        "ip": "192.168.0.1",
+        "port": 232
+      },
       "server_url": "",
       "revocation_list_url": ""
     },
     {
       "id": 2,
       "network_idenity": 0,
-      "server_addr": "192.168.0.1:1231",
+      "server_addr": {
+        "ip": "192.168.0.1",
+        "port": 232
+      },
       "server_url": "",
       "revocation_list_url": ""
     },
     {
       "id": 3,
       "network_idenity": 0,
-      "server_addr": "192.168.0.1:1231",
+      "server_addr": {
+        "ip": "192.168.0.1",
+        "port": 232
+      },
       "server_url": "",
       "revocation_list_url": ""
     },
     {
       "id": 4,
       "network_idenity": 0,
-      "server_addr": "192.168.0.1:1231",
+      "server_addr": {
+        "ip": "192.168.0.1",
+        "port": 232
+      },
       "server_url": "",
       "revocation_list_url": ""
     }

@@ -100,6 +100,7 @@ func (ks *Kritis3m_Scale) Import() {
 	)
 	if err != nil {
 		log.Err(err)
+		return
 	}
 
 	_, err = ks.db.AddIdentitys(parsed.Identites)
@@ -170,9 +171,9 @@ func (ks *Kritis3m_Scale) Listconfigs(cfg_id int, includeAppls bool) {
 			// Print each application for the current configuration
 			if len(appls) > 0 {
 				for _, appl := range appls {
-					fmt.Printf("%-10d %-20d %-15s %-10d %-10d %-10t %-20s %-20s %-20s %-10d %-10d\n",
+					fmt.Printf("%-10d %-20d %-15s %-10d %-10d %-10t %-20s %s:%-20d %s:%-20d %-10d %-10d\n",
 						config.ID, config.Version, config.HardbeatInterval.String(), config.Whitelist.ID,
-						appl.ID, appl.State, appl.Type.String(), appl.ListeningIpPort, appl.ClientIpPort, appl.Ep1ID, appl.Ep2ID)
+						appl.ID, appl.State, appl.Type.String(), appl.ListeningIpPort.IP.String(), appl.ListeningIpPort.Port, appl.ClientIpPort.IP.String(), appl.ClientIpPort.Port, appl.Ep1ID, appl.Ep2ID)
 				}
 			} else {
 				// No applications, print config without app details

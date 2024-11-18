@@ -111,13 +111,13 @@ func addTCto_Whitelist(tx *gorm.DB, whitelist_id uint, trusted_client *types.DBT
 	trusted_client.WhitelistID = whitelist_id
 	return tx.Create(trusted_client).Error
 }
-func (db *KSDatabase) AddTCto_WhitelistValues(whitelist_id uint, client_ip_port string) error {
+func (db *KSDatabase) AddTCto_WhitelistValues(whitelist_id uint, client_ip_port types.Kritis3mAddr) error {
 	return db.Write(func(tx *gorm.DB) error {
 		return addTCto_WhitelistValues(tx, whitelist_id, client_ip_port)
 	})
 }
 
-func addTCto_WhitelistValues(tx *gorm.DB, whitelist_id uint, client_ip_port string) error {
+func addTCto_WhitelistValues(tx *gorm.DB, whitelist_id uint, client_ip_port types.Kritis3mAddr) error {
 	trusted_client := &types.DBTrustedClients{
 		WhitelistID:  whitelist_id,
 		ClientIpPort: client_ip_port,
