@@ -15,11 +15,67 @@ type ConfigurationHandler interface {
 	GetAllConfigsOfNodeby_SerialNumber(serial_number string) ([]*types.DBNodeConfig, error)
 	GetActiveConfigOfNodeby_ID(id uint) (*types.DBNodeConfig, error)
 	GetConfigby_ID(cfg_id uint) (*types.DBNodeConfig, error)
+
+	GetHwConfigby_ID(cfg_id uint) (*types.HardwareConfig, error)
+	GetHwConfigby_ConfigID(cfg_id uint) ([]*types.HardwareConfig, error)
+
 	AddConfigto_NodeSerialNumber(noide_serialnumber string, cfg *types.DBNodeConfig) error
 	AddConfigto_NodeID(noide_id uint, cfg *types.DBNodeConfig) error
 	AddConfigto_Node(node *types.DBNode, cfg *types.DBNodeConfig) error
 	AddConfigto_NodeValues(node *types.DBNode, hb_inteval time.Duration, version uint) error
-	UpdateConfig_byID(id uint, cfg *types.DBNodeConfig) error
+	AddHwConfigto_Config(config_id uint, hw_cfg *types.HardwareConfig) error
+
+	UpdateConfig_byID(hw_id uint, cfg *types.DBNodeConfig) error
+	UpdateHwConfig(config_id uint, hw_cfg *types.HardwareConfig) error
+}
+
+func (db *KSDatabase) AddHwConfigto_Config(config_id uint, hw_cfg *types.HardwareConfig) error {
+	return db.Write(func(tx *gorm.DB) error {
+		return addhwconfigto_config(tx, config_id, hw_cfg)
+	})
+}
+func addhwconfigto_config(tx *gorm.DB, config_id uint, hw_cfg *types.HardwareConfig) error {
+	hw_cfg.ConfigID = config_id
+	return tx.Create(&hw_cfg).Error
+}
+
+func (db *KSDatabase) UpdateHwConfig(hw_cfg_id uint, hw_cfg *types.HardwareConfig) error {
+	return db.Write(func(tx *gorm.DB) error {
+		return updatehwconfig(tx, hw_cfg_id, hw_cfg)
+	})
+}
+func updatehwconfig(tx *gorm.DB, hw_cfg_id uint, hw_cfg *types.HardwareConfig) error {
+	hw_cfg.ID = hw_cfg_id
+	return tx.Save(&hw_cfg).Error
+
+}
+
+func (db *KSDatabase) GetHwConfigby_ID(cfg_id uint) (*types.HardwareConfig, error) {
+	gormDB := db.DB
+	return Read(gormDB, func(tx *gorm.DB) (*types.HardwareConfig, error) {
+		return gethwconfigby_id(tx, cfg_id)
+	})
+}
+func gethwconfigby_id(rx *gorm.DB, cfg_id uint) (*types.HardwareConfig, error) {
+	var hw_config *types.HardwareConfig
+	if err := rx.Where("id = ", cfg_id).Find(hw_config).Error; err != nil {
+		return nil, err
+	}
+	return hw_config, nil
+}
+
+func (db *KSDatabase) GetHwConfigby_ConfigID(cfg_id uint) ([]*types.HardwareConfig, error) {
+	gormDB := db.DB
+	return Read(gormDB, func(tx *gorm.DB) ([]*types.HardwareConfig, error) {
+		return gethwconfigby_configid(gormDB, cfg_id)
+	})
+}
+func gethwconfigby_configid(rx *gorm.DB, cfg_id uint) ([]*types.HardwareConfig, error) {
+	var hw_configs []*types.HardwareConfig
+	if err := rx.Where("config_id = ?", cfg_id).Find(hw_configs).Error; err != nil {
+		return nil, err
+	}
+	return hw_configs, nil
 }
 
 func (db *KSDatabase) UpdateConfig_byID(id uint, cfg *types.DBNodeConfig) error {
@@ -27,7 +83,6 @@ func (db *KSDatabase) UpdateConfig_byID(id uint, cfg *types.DBNodeConfig) error 
 		return updateConfig_byID(tx, id, cfg)
 	})
 }
-
 func updateConfig_byID(tx *gorm.DB, id uint, cfg *types.DBNodeConfig) error {
 	// Find the existing config by ID
 	var existingConfig types.DBNodeConfig
@@ -195,9 +250,9 @@ func (db *KSDatabase) AddConfigto_NodeValues(node *types.DBNode, hb_interval tim
 
 func addConfigto_NodeValues(tx *gorm.DB, node *types.DBNode, hb_interval time.Duration, version uint) error {
 	config := &types.DBNodeConfig{
-		NodeID:           node.ID,
-		HardbeatInterval: hb_interval,
-		Version:          version,
+		NodeID:            node.ID,
+		HeartbeatInterval: hb_interval,
+		Version:           version,
 	}
 	return tx.Create(config).Error
 }

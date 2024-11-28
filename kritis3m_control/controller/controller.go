@@ -10,8 +10,8 @@ type NodeRegisterController interface {
 	InstructedAssignConfiguration(c *gin.Context)
 }
 
-type NodeHardbeatController interface {
-	RespondHardbeatRequest(c *gin.Context)
+type NodeHeartbeatController interface {
+	RespondHeartbeatRequest(c *gin.Context)
 }
 
 type LogController interface {
@@ -42,18 +42,16 @@ func (ctrl NodeRegisterControllerImpl) InstructedAssignConfiguration(c *gin.Cont
 	ctrl.svc.InstructedAssignConfiguration(c)
 }
 
-// ------------------------ Hardbeat
-
-func NewNodeHardbeatControllerImpl(svc service.NodeHardbeatServiceImpl) NodeHardbeatControllerImpl {
-	return NodeHardbeatControllerImpl{svc: svc}
+func NewHeartbeatControllerImpl(svc service.NodeHeartbeatServiceImpl) NodeHeartbeatControllerImpl {
+	return NodeHeartbeatControllerImpl{svc: svc}
 }
 
-type NodeHardbeatControllerImpl struct {
-	svc service.NodeHardbeatService
+type NodeHeartbeatControllerImpl struct {
+	svc service.NodeHeartbeatService
 }
 
-func (ctrl NodeHardbeatControllerImpl) RespondHardbeatRequest(c *gin.Context) {
-	ctrl.svc.RespondHardbeatRequest(c)
+func (ctrl NodeHeartbeatControllerImpl) RespondHeartbeatRequest(c *gin.Context) {
+	ctrl.svc.RespondHeartbeatRequest(c)
 }
 
 // ------------------------LogController

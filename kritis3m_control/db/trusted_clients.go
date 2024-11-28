@@ -111,23 +111,23 @@ func addTCto_Whitelist(tx *gorm.DB, whitelist_id uint, trusted_client *types.DBT
 	trusted_client.WhitelistID = whitelist_id
 	return tx.Create(trusted_client).Error
 }
-func (db *KSDatabase) AddTCto_WhitelistValues(whitelist_id uint, client_ip_port types.Kritis3mAddr) error {
+func (db *KSDatabase) AddTCto_WhitelistValues(whitelist_id uint, client_ip_port string) error {
 	return db.Write(func(tx *gorm.DB) error {
 		return addTCto_WhitelistValues(tx, whitelist_id, client_ip_port)
 	})
 }
 
-func addTCto_WhitelistValues(tx *gorm.DB, whitelist_id uint, client_ip_port types.Kritis3mAddr) error {
+func addTCto_WhitelistValues(tx *gorm.DB, whitelist_id uint, client_ip_port string) error {
 	trusted_client := &types.DBTrustedClients{
-		WhitelistID:  whitelist_id,
-		ClientIpPort: client_ip_port,
+		WhitelistID:        whitelist_id,
+		ClientEndpointAddr: client_ip_port,
 	}
 	return tx.Create(trusted_client).Error
 }
 func (db *KSDatabase) AddTCto_ApplicationID(application_id uint, trusted_client *types.DBTrustedClients) error {
 	_, err := db.GetWhitelistby_ID(trusted_client.ID)
 	if err != nil {
-		log.Error().Msg("trusted client does not live in a whitelist. Please add the clieNewNodeHardbeatServiceImplnt first to a whitelist before connecting to an application")
+		log.Error().Msg("trusted client does not live in a whitelist. Please add the clieNewNodeHeartbeatServiceImplnt first to a whitelist before connecting to an application")
 		return err
 	}
 	return db.Write(func(tx *gorm.DB) error {

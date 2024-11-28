@@ -16,26 +16,28 @@ reasons to request a new configuration:
 2. configuration_id != configuration_id
 */
 
-type NodeHardbeatService interface {
-	RespondHardbeatRequest(c *gin.Context)
+type NodeHeartbeatService interface {
+	RespondHeartbeatRequest(c *gin.Context)
 }
-type NodeHardbeatServiceImpl struct {
+type NodeHeartbeatServiceImpl struct {
 	db *db.KSDatabase
 }
 
-func NewNodeHardbeatServiceImpl(ks_db *db.KSDatabase) NodeHardbeatServiceImpl {
-	return NodeHardbeatServiceImpl{db: ks_db}
+//NewNodeHeartbeatServiceImpl
+
+func NewNodeHeartbeatServiceImpl(ks_db *db.KSDatabase) NodeHeartbeatServiceImpl {
+	return NodeHeartbeatServiceImpl{db: ks_db}
 }
 
-func (svc NodeHardbeatServiceImpl) RespondHardbeatRequest(c *gin.Context) {
+func (svc NodeHeartbeatServiceImpl) RespondHeartbeatRequest(c *gin.Context) {
 	identity, err := get_identity(c)
 	if err != nil {
 		log.Err(err).Msg("Identity is not complete. Request is missing either serialnumber or cfg id or version/updatedate")
 		c.Set("caller_error", true)
-		c.Error(types.ErrUnauthorized).SetMeta("DistributionService: RespondHardbeatRequest")
+		c.Error(types.ErrUnauthorized).SetMeta("DistributionService: RespondHeartbeatRequest")
 		return
 	}
-	log.Info().Msgf("Node with Serialnumber %s calls hardbeat service", identity.Serialnumber)
+	log.Info().Msgf("Node with Serialnumber %s calls heartbeat service", identity.Serialnumber)
 
 	// node is known but not configured
 	// therefore Sleepmode is ordered
@@ -44,15 +46,15 @@ func (svc NodeHardbeatServiceImpl) RespondHardbeatRequest(c *gin.Context) {
 		//No configuration found for Node
 		if err == gorm.ErrRecordNotFound {
 			log.Err(err).Msgf("No active configuration available for Node %s, respond shutdown", identity.Serialnumber)
-			var response = HardbeatResponse{
+			var response = HeartbeatResponse{
 				HBInstruction: HB_NOCONFIGAVAILABLE,
 			}
 			c.JSON(200, response)
 			return
 		} else {
-			log.Err(err).Msg("Internal Error in RespondHardbeatRequest")
+			log.Err(err).Msg("Internal Error in RespondHeartbeatRequest")
 			c.Set("internal_error", true)
-			c.Error(types.ErrInternalError).SetMeta("Hardbeat Service: Internal Error occured")
+			c.Error(types.ErrInternalError).SetMeta("Hearbeat Service: Internal Error occured")
 			return
 		}
 	}
@@ -62,14 +64,14 @@ func (svc NodeHardbeatServiceImpl) RespondHardbeatRequest(c *gin.Context) {
 	svc.db.UpdateLastSeenby_SerialNumber(identity.Serialnumber, time.Now())
 
 	if is_up2date {
-		var response = HardbeatResponse{
+		var response = HeartbeatResponse{
 			HBInstruction: HB_NOTHING,
 		}
 		c.JSON(200, response)
 		return
 	} else {
 		log.Info().Msgf("Node with Serialnumber %s is ordered to request a new configuration", identity.Serialnumber)
-		var response = HardbeatResponse{
+		var response = HeartbeatResponse{
 			HBInstruction: HB_REQUESTPOLICIES,
 		}
 		c.JSON(200, response)
@@ -77,7 +79,7 @@ func (svc NodeHardbeatServiceImpl) RespondHardbeatRequest(c *gin.Context) {
 	}
 }
 
-func (svc NodeHardbeatServiceImpl) isconfiguration_up2date(identity Identity) (bool, error) {
+func (svc NodeHeartbeatServiceImpl) isconfiguration_up2date(identity Identity) (bool, error) {
 	latest_config, err := svc.db.GetActiveConfigOfNodeby_SerialNumber(identity.Serialnumber)
 	if err != nil {
 		return false, err

@@ -48,6 +48,7 @@ func NewKritis3mScaleDatabase(
 		&types.DBApplication{},
 		&types.DBIdentity{},
 		&types.DBNode{},
+		&types.HardwareConfig{},
 		&types.DBWhitelist{},
 		&types.DBNodeConfig{},
 		&types.DBTrustedClients{},

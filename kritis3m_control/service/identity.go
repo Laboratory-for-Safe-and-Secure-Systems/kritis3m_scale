@@ -14,6 +14,7 @@ type Identity struct {
 	Updated_at   time.Time
 }
 
+// not production ready
 func get_identity(c *gin.Context) (Identity, error) {
 	var identity Identity
 	node := c.Param("serialnumber")

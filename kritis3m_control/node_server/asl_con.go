@@ -4,7 +4,7 @@ import (
 	"net"
 	"time"
 
-	asl "github.com/Laboratory-for-Safe-and-Secure-Systems/go-wolfssl/asl"
+	asl "github.com/Laboratory-for-Safe-and-Secure-Systems/go-asl"
 )
 
 type ASLConn struct {

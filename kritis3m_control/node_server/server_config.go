@@ -6,7 +6,7 @@ import (
 )
 
 func Init(ctrl_logger controller.LogController,
-	ctrl_hardbeat controller.NodeHardbeatController,
+	ctrl_heartbeat controller.NodeHeartbeatController,
 	ctrl_register controller.NodeRegisterController) *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Logger())
@@ -20,7 +20,7 @@ func Init(ctrl_logger controller.LogController,
 
 		operation := api.Group("/operation/version/:version_number")
 		operation.GET("register/instructed", ctrl_register.InstructedAssignConfiguration)
-		operation.GET("/hardbeat", ctrl_hardbeat.RespondHardbeatRequest)
+		operation.GET("/heartbeat", ctrl_heartbeat.RespondHeartbeatRequest)
 
 		logging_api := api.Group("/logger")
 		logging_api.POST("/active_con", ctrl_logger.PushActiveConnections)

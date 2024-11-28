@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Laboratory-for-Safe-and-Secure-Systems/go-wolfssl/asl"
+	asl "github.com/Laboratory-for-Safe-and-Secure-Systems/go-asl"
 	"github.com/philslol/kritis3m_scale/kritis3m_control/util"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -38,14 +38,13 @@ type KS_PrivateKeyConfig struct {
 
 // Config contains the initial Headscale configuration.
 type Config struct {
-	NoisePrivateKeyPath string
-	Log                 LogConfig
-	Database            DatabaseConfig
-	Log_Database        DatabaseConfig
-	CLI                 CLIConfig
-	ACL                 ACLConfig
-	NodeServer          NodeServerConfig
-	ASLConfig           asl.ASLConfig
+	Log          LogConfig
+	Database     DatabaseConfig
+	Log_Database DatabaseConfig
+	CLI          CLIConfig
+	ACL          ACLConfig
+	NodeServer   NodeServerConfig
+	ASLConfig    asl.ASLConfig
 }
 
 type SqliteConfig struct {
@@ -126,6 +125,7 @@ func LoadConfig(path string, isFile bool) error {
 		return nil
 	}
 }
+
 func parse_endpoint(ep_yaml *KS_EndpointConfig) asl.EndpointConfig {
 	var endpoint_config asl.EndpointConfig
 	endpoint_config.MutualAuthentication = ep_yaml.MutualAuthentication
@@ -353,10 +353,6 @@ func GetLogConfig() LogConfig {
 func GetKritis3mScaleConfig() (*Config, error) {
 
 	return &Config{
-
-		NoisePrivateKeyPath: util.AbsolutePathFromConfigPath(
-			viper.GetString("noise.private_key_path"),
-		),
 
 		Database:     GetDatabaseConfig(),
 		Log_Database: GetLogDatabaseConfig(),

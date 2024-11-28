@@ -11,7 +11,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Laboratory-for-Safe-and-Secure-Systems/go-wolfssl/asl"
+	asl "github.com/Laboratory-for-Safe-and-Secure-Systems/go-asl"
 	"github.com/rs/zerolog/log"
 
 	// "os"
@@ -39,17 +39,6 @@ type Kritis3m_Scale struct {
 	insecure_server http.Server
 }
 
-// type Kritis3m_Server struct {
-// 	log_controller      controller.LogController
-// 	hardbeat_controller controller.NodeHardbeatController
-// 	register_controller controller.NodeRegisterController
-//
-// 	//service
-// 	log_service      service.LogService
-// 	hardbeat_service service.NodeHardbeatService
-// 	register_service service.NodeRegisterService
-// }
-
 func NewKritis3m_scale(cfg *types.Config) (*Kritis3m_Scale, error) {
 	log.Info().Msg("In function new kritis3m_scale")
 
@@ -66,11 +55,11 @@ func NewKritis3m_scale(cfg *types.Config) (*Kritis3m_Scale, error) {
 	}
 	// app.log_db, err = db.NewLogDatabase(cfg.Log_Database)
 
-	serv_hard := service.NewNodeHardbeatServiceImpl(app.db)
+	serv_heart := service.NewNodeHeartbeatServiceImpl(app.db)
 	serv_log := service.NewLogServiceImpl(app.log_db)
 	serv_reg := service.NewNodeRegisterServiceImpl(app.db)
 	ctrl_log := controller.NewLogControllerImpl(serv_log)
-	ctrl_hard := controller.NewNodeHardbeatControllerImpl(serv_hard)
+	ctrl_hard := controller.NewHeartbeatControllerImpl(serv_heart)
 
 	ctrl_reg := controller.NewNodeRegisterControllerImpl(serv_reg)
 	router := node_server.Init(ctrl_log, ctrl_hard, ctrl_reg)
@@ -174,19 +163,19 @@ func (ks *Kritis3m_Scale) Listconfigs(cfg_id int, includeAppls bool) {
 			// Print each application for the current configuration
 			if len(appls) > 0 {
 				for _, appl := range appls {
-					fmt.Printf("%-10d %-20d %-15s %-10d %-10d %-10t %-20s %s:%-20d %s:%-20d %-10d %-10d\n",
-						config.ID, config.Version, config.HardbeatInterval.String(), config.Whitelist.ID,
-						appl.ID, appl.State, appl.Type.String(), appl.ListeningIpPort.IP.String(), appl.ListeningIpPort.Port, appl.ClientIpPort.IP.String(), appl.ClientIpPort.Port, appl.Ep1ID, appl.Ep2ID)
+					fmt.Printf("%-10d %-20d %-15s %-10d %-10d %-10t %-20s %-20s %-20s %-10d %-10d\n",
+						config.ID, config.Version, config.HeartbeatInterval.String(), config.Whitelist.ID,
+						appl.ID, appl.State, appl.Type.String(), appl.ServerEndpointAddr, appl.ClientEndpointAddr, appl.Ep1ID, appl.Ep2ID)
 				}
 			} else {
 				// No applications, print config without app details
 				fmt.Printf("%-10d %-20d %-15s %-10d %-10s %-10s %-10s %-20s %-20s %-10s %-10s\n",
-					config.ID, config.Version, config.HardbeatInterval.String(), config.Whitelist.ID,
+					config.ID, config.Version, config.HeartbeatInterval.String(), config.Whitelist.ID,
 					"N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A")
 			}
 		} else {
 			// Print configuration without application details
-			fmt.Printf("%-10d %-20d %-15s %-10d\n", config.ID, config.Version, config.HardbeatInterval.String(), config.Whitelist.ID)
+			fmt.Printf("%-10d %-20d %-15s %-10d\n", config.ID, config.Version, config.HeartbeatInterval.String(), config.Whitelist.ID)
 		}
 	}
 }
@@ -295,19 +284,6 @@ func (ks *Kritis3m_Scale) Serve() {
 		ks.server.Serve(aslListener)
 	}()
 
-	go func() {
-
-		addr_http, err := net.ResolveTCPAddr("tcp", ks.cfg.NodeServer.AddressHTTP)
-		if err != nil {
-			log.Err(err).Msg("cant parse ip adress correctly")
-			log.Fatal()
-		}
-
-		tcpListener, _ := net.ListenTCP("tcp", addr_http)
-
-		ks.insecure_server.Serve(tcpListener)
-
-	}()
 	select {}
 	log.Info().Msg("server down")
 

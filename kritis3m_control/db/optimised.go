@@ -16,7 +16,7 @@ func (db *KSDatabase) GetConfigFor_DistributionService(node_id uint) (*types.DBN
 func getconfigfor_distributionservice(tx *gorm.DB, node_id uint) (*types.DBNodeConfig, error) {
 	var nodeConfig *types.DBNodeConfig
 
-	if err := tx.Preload("Whitelist.TrustedClients").Preload("Application").Where(&types.DBNodeConfig{NodeID: node_id}).First(&nodeConfig).Error; err != nil {
+	if err := tx.Preload("Whitelist.TrustedClients").Preload("HardwareConfig").Preload("Application").Where(&types.DBNodeConfig{NodeID: node_id}).First(&nodeConfig).Error; err != nil {
 		log.Err(err).Msgf("error getting configuration")
 		return nil, err
 	}

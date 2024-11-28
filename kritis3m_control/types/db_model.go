@@ -6,7 +6,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/Laboratory-for-Safe-and-Secure-Systems/go-wolfssl/asl"
+	asl "github.com/Laboratory-for-Safe-and-Secure-Systems/go-asl"
 	"gorm.io/gorm"
 )
 
@@ -68,62 +68,46 @@ type DistributionResponse struct {
 	Identities   []*DBIdentity          `json:"identities"`
 }
 
-type HeartbeatInstruction uint8
+type NodeState int8
 
 const (
-	CallDistributionService HeartbeatInstruction = 0
-	PostSystemStatus        HeartbeatInstruction = 1
-	ChangeHeartbeatInterval HeartbeatInstruction = 2 //server and client tls endpoint
-	ChangeLogLevel          HeartbeatInstruction = 3 //server and client tls endpoint
-	UptoDate                HeartbeatInstruction = 4
-)
-
-type NodeState uint8
-
-const (
-	NotSeen  NodeState = 0
-	Running  NodeState = 1
-	Updating NodeState = 2 //server and client tls endpoint
+	ErrorState          NodeState = -1
+	NotSeen             NodeState = 0
+	NodeRequestedConfig NodeState = 1
+	Running             NodeState = 2
 )
 
 func (a NodeState) String() string {
 	switch a {
+	case ErrorState:
+		return "Error"
 	case NotSeen:
 		return "not seen"
 	case Running:
 		return "running"
-	case Updating:
-		return "updating"
+	case NodeRequestedConfig:
+		return "node requested configuration"
 	default:
 		return "unknown state"
 	}
 }
 
-func (a HeartbeatInstruction) String() string {
-	switch a {
-	case CallDistributionService:
-		return "Call Distrib"
-	case PostSystemStatus:
-		return "post status"
-	case ChangeHeartbeatInterval:
-		return "change hb iv"
-	case ChangeLogLevel:
-		return "change log lvl"
-	case UptoDate:
-		return "no instruction"
-	default:
-		return "unknown instruction"
-	}
-}
-
 type SelectedConfiguration struct {
 	gorm.Model
-	NodeID               uint
-	Node                 DBNode `gorm:"foreignKey:NodeID"`
-	ConfigID             uint
-	Config               DBNodeConfig         `gorm:"foreignKey:ConfigID"`
-	State                NodeState            `gorm:"default:0"` // Not seen
-	HeartbeatInstruction HeartbeatInstruction `gorm:"default:0"` // cal distribution service
+	NodeID    uint
+	Node      DBNode `gorm:"foreignKey:NodeID"`
+	ConfigID  uint
+	Config    DBNodeConfig `gorm:"foreignKey:ConfigID"`
+	NodeState NodeState    `gorm:"default:0"` // cal distribution service
+} // Node represents a node within a network
+
+type HardwareConfig struct {
+	ID       uint         `gorm:"primarykey" json:"-"`
+	ConfigID uint         `json:"-"`
+	Config   DBNodeConfig `gorm:"foreignKey:ConfigID" json:"-"`
+
+	Device string `json:"device"`
+	IpCidr string `json:"cidr"`
 } // Node represents a node within a network
 
 type DBNode struct {
@@ -140,36 +124,46 @@ type DBNode struct {
 
 // Node represents a node within a network
 type DBNodeConfig struct {
-	CreatedAt        time.Time        `json:"-"`
-	DeletedAt        gorm.DeletedAt   `json:"-" gorm:"index"`
-	ID               uint             `gorm:"primarykey" json:"id"`
-	NodeID           uint             `json:"-"`
-	UpdatedAt        time.Time        `json:"updated_at,omitempty"`
-	Version          uint             `gorm:"default:0" json:"version,omitempty"`
-	HardbeatInterval time.Duration    `json:"hb_interval"`
-	Whitelist        DBWhitelist      `gorm:"foreignKey:NodeConfigID" json:"whitelist"`
-	Application      []*DBApplication `gorm:"foreignKey:NodeConfigID" json:"applications"`
+	CreatedAt         time.Time      `json:"-"`
+	DeletedAt         gorm.DeletedAt `json:"-" gorm:"index"`
+	ID                uint           `gorm:"primarykey" json:"id"`
+	NodeID            uint           `json:"-"`
+	LogLevel          uint           `gorm:"default:3" json:"log_level,omitempty"`
+	UpdatedAt         time.Time      `json:"updated_at,omitempty"`
+	ConfigName        string         `json:"config_name"`
+	Version           uint           `gorm:"default:0" json:"version,omitempty"`
+	HeartbeatInterval time.Duration  `json:"hb_interval"`
+
+	HardwareConfig []*HardwareConfig `gorm:"foreignKey:ConfigID" json:"hw_config"`
+
+	Whitelist DBWhitelist `gorm:"foreignKey:NodeConfigID" json:"whitelist"`
+
+	Application []*DBApplication `gorm:"foreignKey:NodeConfigID" json:"applications"`
 }
 
 type DBApplication struct {
-	CreatedAt      time.Time           `json:"-"`
-	UpdatedAt      time.Time           `json:"-"`
-	DeletedAt      gorm.DeletedAt      `json:"-" gorm:"index"`
-	ID             uint                `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time      `json:"-"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
+	ID        uint           `gorm:"primarykey" json:"id"`
+
 	NodeConfigID   uint                `json:"config_id,omitempty"`
 	State          bool                `json:",omitempty"`
 	TrustedClients []*DBTrustedClients `gorm:"many2many:application_trusts_clients" json:"-"`
 	Type           ApplicationType     `json:"type"`
 
-	ListeningIpPort Kritis3mAddr `gorm:"embedded;embeddedPrefix:listening_ip_" json:"server_ip_port"`
-	ClientIpPort    Kritis3mAddr `gorm:"embedded;embeddedPrefix:client_ip_" json:"client_ip_port"`
+	ServerEndpointAddr string `json:"server_endpoint_addr"`
+	ClientEndpointAddr string `json:"client_endpoint_addr"`
 
 	Ep1ID uint                 `json:"ep1_id,omitempty"`
 	Ep1   *DBAslEndpointConfig `json:"-" gorm:"foreignKey:Ep1ID"`
 
-	Ep2ID uint                 `json:"ep2_id,omitempty"`
-	Ep2   *DBAslEndpointConfig `json:"-" gorm:"foreignKey:Ep2ID"`
+	Ep2ID    uint                 `json:"ep2_id,omitempty"`
+	Ep2      *DBAslEndpointConfig `json:"-" gorm:"foreignKey:Ep2ID"`
+	LogLevel uint                 `json:"log_level,omitempty" gorm:"default:3"`
 }
+
+// @deprecated
 type Kritis3mAddr struct {
 	IP     net.IP       `json:"-" gorm:"type:varbinary(16)"` // To store up to 16 bytes (IPv6) // 0.0.0.0 for all ports
 	IPStr  string       `json:"ip" gorm:"-" `
@@ -177,6 +171,7 @@ type Kritis3mAddr struct {
 	Port   uint16       `json:"port"` // 0 for all ports
 }
 
+// @deprecated
 func (e Kritis3mAddr) MarshalJSON() ([]byte, error) {
 	type Alias Kritis3mAddr
 	aux := struct {
@@ -190,7 +185,7 @@ func (e Kritis3mAddr) MarshalJSON() ([]byte, error) {
 }
 
 // Custom JSON Unmarshaling
-// json to struct
+// @deperecated
 func (addr *Kritis3mAddr) UnmarshalJSON(data []byte) error {
 	type RecursionBreaker *Kritis3mAddr
 	var recBreaker RecursionBreaker
@@ -240,7 +235,7 @@ type DBTrustedClients struct {
 	DeletedAt               gorm.DeletedAt   `json:"-" gorm:"index"`
 	ID                      uint             `gorm:"primarykey:id" json:"id"`
 	WhitelistID             uint             `json:"-"`
-	ClientIpPort            Kritis3mAddr     `gorm:"embedded" json:"client_ip_port"`
+	ClientEndpointAddr      string           `json:"client_endpoint_addr"`
 	ApplicationIDs          []uint           `gorm:"-" json:"application_ids" `
 	ApplicationTrustsClient []*DBApplication `gorm:"many2many:application_trusts_clients;" json:"-"`
 }
@@ -264,12 +259,12 @@ type DBAslEndpointConfig struct {
 }
 
 type DBIdentity struct {
-	CreatedAt         time.Time      `json:"-"`
-	UpdatedAt         time.Time      `json:"-"`
-	DeletedAt         gorm.DeletedAt `json:"-" gorm:"index"`
-	ID                uint           `gorm:"primarykey" json:"id"`
-	Identity          uint           `json:"identity"`
-	ServerAddr        Kritis3mAddr   `gorm:"embedded" json:"server_addr"`
-	ServerUrl         string         `json:"server_url"`
-	RevocationListUrl string         `json:"revocation_list_url"`
+	CreatedAt          time.Time      `json:"-"`
+	UpdatedAt          time.Time      `json:"-"`
+	DeletedAt          gorm.DeletedAt `json:"-" gorm:"index"`
+	ID                 uint           `gorm:"primarykey" json:"id"`
+	Identity           uint           `json:"identity"`
+	ServerEndpointAddr string         ` json:"server_endpoint_addr"`
+	ServerUrl          string         `json:"server_url"`
+	RevocationListUrl  string         `json:"revocation_list_url"`
 }
