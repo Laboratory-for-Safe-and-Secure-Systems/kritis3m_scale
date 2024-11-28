@@ -14,6 +14,10 @@ type GormZerologger struct {
 	slowThresh time.Duration
 }
 
+func (gzl GormZerologger) GetZeroLogger() *zerolog.Logger {
+	return &gzl.zlog
+}
+
 // NewGormZerologger creates a new GORM logger that uses Zerolog
 func NewGormZerologger(zlog zerolog.Logger, logLevel logger.LogLevel, slowThreshold time.Duration) *GormZerologger {
 	return &GormZerologger{

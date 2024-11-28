@@ -1,18 +1,10 @@
----
-# headscale will look for a configuration file named `config.yaml` (or `config.json`) in the following order:
-#
-# - `/etc/headscale`
-# - `~/.headscale`
-# - current working directory
-
-# The url clients will connect to.
-# Typically this will be a domain like:
-#
-# https://myheadscale.example.com:443
-#
-
+#all non absolute paths are added up with the directory of the config file 
+# suppose path: ./my/relative/path -> /path/to/configfile/my/relative/path
 node_server:
   address: "192.168.1.4:8080"
+  log:
+    log_level: warn 
+    mode: debug # release debug test
   endpoint_config:
     private_key:
       path_1: "./certs/privateKey.pem"
@@ -23,6 +15,7 @@ node_server:
     mutual_authentication: false 
     no_encryption: false 
     secure_element_middleware_path: ~
+    pin: ~ 
     key_exchange_method: "KEX_DEFAULT"
 # @brief "key exchange methods:" 
 #"KEX_DEFAULT"                    
@@ -51,61 +44,10 @@ asl_config:
   logging_enabled: true
   log_level: 4
 
-metrics_listen_addr: 127.0.0.1:9090
-
-# Address to listen for gRPC.
-# gRPC is used for controlling a headscale server
-# remotely with the CLI
-# Note: Remote access _only_ works if you have
-# valid certificates.
-#
-# For production:
-# grpc_listen_addr: 0.0.0.0:50443
-# grpc_listen_addr: 127.0.0.1:50443
-
-# Allow the gRPC admin interface to run in INSECURE
-# mode. This is not recommended as the traffic will
-# be unencrypted. Only enable if you know what you
-# are doing.
-# grpc_allow_insecure: true 
-
-# The Noise section includes specific configuration for the
-# TS2021 Noise protocol
-noise:
-  # The Noise private key is used to encrypt the
-  # traffic between headscale and Tailscale clients when
-  # using the new Noise-based protocol.
-  private_key_path: /home/philipp/kritis/kritis3m_scale/crypto/noise_private.key
-
-# List of IP prefixes to allocate tailaddresses from.
-# Each prefix consists of either an IPv4 or IPv6 address,
-# and the associated prefix length, delimited by a slash.
-# It must be within IP ranges supported by the Tailscale
-# client - i.e., subnets of 100.64.0.0/10 and fd7a:115c:a1e0::/48.
-# See below:
-# IPv6: https://github.com/tailscale/tailscale/blob/22ebb25e833264f58d7c3f534a8b166894a89536/net/tsaddr/tsaddr.go#LL81C52-L81C71
-# IPv4: https://github.com/tailscale/tailscale/blob/22ebb25e833264f58d7c3f534a8b166894a89536/net/tsaddr/tsaddr.go#L33
-# Any other range is NOT supported, and it will cause unexpected issues.
-prefixes:
-  v6: fd7a:115c:a1e0::/48
-  v4: 100.64.0.0/10
-
-
-# Disables the automatic check for headscale updates on startup
-disable_check_updates: false
-
-# Time before an inactive ephemeral node is deleted?
-ephemeral_node_inactivity_timeout: 30m
-
-# Period to check for node updates within the tailnet. A value too low will severely affect
-# CPU consumption of Headscale. A value too high (over 60s) will cause problems
-# for the nodes, as they won't get updates or keep alive messages frequently enough.
-# In case of doubts, do not touch the default 10s.
-node_update_check_interval: 10s
-
 database:
   type: sqlite
-  log_level: info 
+  debug: true
+  log_level: warn 
 
   # SQLite config
   sqlite:
@@ -113,68 +55,15 @@ database:
 
 log_database:
   type: sqlite
-
+  debug: false
   # SQLite config
   sqlite:
     path: /home/philipp/kritis/kritis3m_scale/log.sqlite
-
-### TLS configuration
-#
-## Let's encrypt / ACME
-#
-# headscale supports automatically requesting and setting up
-# TLS for a domain with Let's Encrypt.
-#
-# URL to ACME directory
-acme_url: https://acme-v02.api.letsencrypt.org/directory
-
-# Email to register with ACME provider
-acme_email: ""
-
-# Domain name to request a TLS certificate for:
-tls_letsencrypt_hostname: ""
-
-# Path to store certificates and metadata needed by
-# letsencrypt
-# For production:
-tls_letsencrypt_cache_dir: /var/lib/headscale/cache
-
-# Type of ACME challenge to use, currently supported types:
-# HTTP-01 or TLS-ALPN-01
-# See [docs/tls.md](docs/tls.md) for more information
-tls_letsencrypt_challenge_type: HTTP-01
-# When HTTP-01 challenge is chosen, letsencrypt must set up a
-# verification endpoint, and it will be listening on:
-# :http = port 80
-tls_letsencrypt_listen: ":http"
-
-## Use already defined certificates:
-tls_cert_path: ""
-tls_key_path: ""
-
+#global log module
 log:
   # Output formatting for logs: text or json
   format: json 
   level: info
 
-# Path to a file containg ACL policies.
-# ACLs can be defined as YAML or HUJSON.
-# https://tailscale.com/kb/1018/acls/
-acl_policy_path: "/home/philipp/kritis/kritis3m_scale/acl.json"
+acl_policy_path: ./db_startup_data/startup.json
 
-
-# Logtail configuration
-# Logtail is Tailscales logging and auditing infrastructure, it allows the control panel
-# to instruct tailscale nodes to log their activity to a remote server.
-logtail:
-  # Enable logtail for this headscales clients.
-  # As there is currently no support for overriding the log server in headscale, this is
-  # disabled by default. Enabling this will make your clients send logs to Tailscale Inc.
-  enabled: false
-
-
-
-# Enabling this option makes devices prefer a random port for WireGuard traffic over the
-# default static port 41641. This option is intended as a workaround for some buggy
-# firewall devices. See https://tailscale.com/kb/1181/firewalls/ for more information.
-randomize_client_port: false

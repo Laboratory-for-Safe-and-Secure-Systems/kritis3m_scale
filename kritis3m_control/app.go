@@ -10,8 +10,11 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 
 	asl "github.com/Laboratory-for-Safe-and-Secure-Systems/go-asl"
+	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
 	// "os"
@@ -47,7 +50,7 @@ func NewKritis3m_scale(cfg *types.Config) (*Kritis3m_Scale, error) {
 		// noisePrivateKey: noisePrivateKey,
 	}
 	var err error
-	gormlog := log.With().Str("service", "gorm").Logger()
+	gormlog := log.With().Str("service", "gorm").Logger().Level(cfg.Database.Level)
 	app.db, err = db.NewKritis3mScaleDatabase(cfg.Database, gormlog)
 	if err != nil {
 		log.Err(err).Msg("error initing db")
@@ -62,7 +65,10 @@ func NewKritis3m_scale(cfg *types.Config) (*Kritis3m_Scale, error) {
 	ctrl_hard := controller.NewHeartbeatControllerImpl(serv_heart)
 
 	ctrl_reg := controller.NewNodeRegisterControllerImpl(serv_reg)
-	router := node_server.Init(ctrl_log, ctrl_hard, ctrl_reg)
+
+	ginLogger := log.With().Str("service", "gin").Logger().Level(app.cfg.NodeServer.Log.Level)
+	router := node_server.Init(ctrl_log, ctrl_hard, ctrl_reg, ginLogger, cfg.NodeServer.GinMode)
+
 	err = asl.ASLinit(&cfg.ASLConfig)
 	if err != nil {
 		log.Err(err).Msg("err asl init")
@@ -287,6 +293,24 @@ func (ks *Kritis3m_Scale) Serve() {
 	select {}
 	log.Info().Msg("server down")
 
+}
+func CustomLoggerMiddleware(logger zerolog.Logger) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		start := time.Now()
+
+		// Process the request
+		c.Next()
+
+		// Use the provided logger to log the request details
+		duration := time.Since(start)
+		logger.Info().
+			Str("method", c.Request.Method).
+			Str("path", c.Request.URL.Path).
+			Int("status", c.Writer.Status()).
+			Str("client_ip", c.ClientIP()).
+			Dur("duration", duration).
+			Msg("Request handled")
+	}
 }
 
 /*

@@ -63,21 +63,26 @@ func NewKritis3mScaleDatabase(
 	return &db, err
 }
 
+// MapZerologLevelToGormLogLevel maps zerolog.Level to gorm's logger.LogLevel
+func MapZerologLevelToGormLogLevel(zeroLevel zerolog.Level) logger.LogLevel {
+	switch zeroLevel {
+	case zerolog.PanicLevel, zerolog.FatalLevel, zerolog.ErrorLevel:
+		return logger.Error
+	case zerolog.WarnLevel:
+		return logger.Warn
+	case zerolog.InfoLevel, zerolog.DebugLevel, zerolog.TraceLevel:
+		return logger.Info
+	case zerolog.NoLevel:
+		return logger.Silent
+	default:
+		return logger.Silent // Default to Silent for undefined levels
+	}
+}
+
 func openDB(cfg types.DatabaseConfig, db_logger zerolog.Logger) (*gorm.DB, error) {
 	// TODO(kradalby): Integrate this with zerolog
-	var log_level int
-	switch cfg.LogLevel {
-	case "info":
-		log_level = int(logger.Info)
-	case "warn":
-		log_level = int(logger.Warn)
-	case "error":
-		log_level = int(logger.Error)
-	default:
-		log.Fatal().Msg("wrong debug level for database logger")
-	}
-	log.Info().Msgf("log level %d", log_level)
-	gormLogger := utils.NewGormZerologger(db_logger, logger.LogLevel(logger.Error), 200*time.Millisecond)
+
+	gormLogger := utils.NewGormZerologger(db_logger, MapZerologLevelToGormLogLevel(cfg.Level), 800*time.Millisecond)
 
 	dir := filepath.Dir(cfg.Sqlite.Path)
 	err := util.EnsureDir(dir)

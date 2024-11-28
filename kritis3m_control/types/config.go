@@ -25,6 +25,7 @@ type KS_EndpointConfig struct {
 	NoEncryption                bool
 	ASLKeyExchangeMethod        string
 	SecureElementMiddlewarePath string
+	Pin                         string
 	HybridSignatureMode         string
 	DeviceCertificateChain      string
 	PrivateKey                  KS_PrivateKeyConfig
@@ -41,10 +42,10 @@ type Config struct {
 	Log          LogConfig
 	Database     DatabaseConfig
 	Log_Database DatabaseConfig
-	CLI          CLIConfig
-	ACL          ACLConfig
-	NodeServer   NodeServerConfig
-	ASLConfig    asl.ASLConfig
+	// CLI          CLIConfig
+	ACL        ACLConfig
+	NodeServer NodeServerConfig
+	ASLConfig  asl.ASLConfig
 }
 
 type SqliteConfig struct {
@@ -53,9 +54,9 @@ type SqliteConfig struct {
 
 type DatabaseConfig struct {
 	// Type sets the database type, either "sqlite3" or "postgres"
-	Type     string
-	Debug    bool
-	LogLevel string
+	Type  string
+	Debug bool
+	Level zerolog.Level
 
 	Sqlite SqliteConfig
 }
@@ -65,17 +66,15 @@ type NodeServerConfig struct {
 	AddressHTTP  string
 	ASL_Config   asl.ASLConfig
 	ASL_Endpoint asl.EndpointConfig
+	Log          LogConfig
+	GinMode      string
 }
 
-type LogTailConfig struct {
-	Enabled bool
-}
-
-type CLIConfig struct {
-	Address  string
-	Timeout  time.Duration
-	Insecure bool
-}
+// type CLIConfig struct {
+// 	Address  string
+// 	Timeout  time.Duration
+// 	Insecure bool
+// }
 
 type ACLConfig struct {
 	PolicyPath string
@@ -102,12 +101,6 @@ func LoadConfig(path string, isFile bool) error {
 
 	viper.SetDefault("log.level", "info")
 	viper.SetDefault("log.format", TextLogFormat)
-
-	viper.SetDefault("cli.timeout", "5s")
-	viper.SetDefault("cli.insecure", false)
-
-	viper.SetDefault("logtail.enabled", false)
-	viper.SetDefault("randomize_client_port", false)
 
 	if err := viper.ReadInConfig(); err != nil {
 		log.Warn().Err(err).Msg("Failed to read configuration from disk")
@@ -207,6 +200,15 @@ func parse_endpoint(ep_yaml *KS_EndpointConfig) asl.EndpointConfig {
 	} else {
 		panic("private key 1 is a mandatory field")
 	}
+	if ep_yaml.Pin != "" {
+		endpoint_config.PKCS11.LongTermCryptoModule.Pin = ep_yaml.Pin
+	}
+
+	if ep_yaml.SecureElementMiddlewarePath != "" {
+		endpoint_config.PKCS11.LongTermCryptoModule.Path = ep_yaml.SecureElementMiddlewarePath
+	} else {
+		log.Info().Msg("no smart card used. secure middleware path empty")
+	}
 
 	if ep_yaml.PrivateKey.PrivateKey2Path != "" {
 		panic("second private key not supported yet. Please leave private key 2 empty")
@@ -263,9 +265,12 @@ func GetNodeServerConfig() NodeServerConfig {
 	if ks_ep_config.SecureElementMiddlewarePath != "" {
 		ks_ep_config.SecureElementMiddlewarePath = util.AbsolutePathFromConfigPath(ks_ep_config.SecureElementMiddlewarePath)
 	}
+	ks_ep_config.Pin = viper.GetString("node_server.endpoint_config.pin")
+	if ks_ep_config.Pin != "" {
+		ks_ep_config.Pin = util.AbsolutePathFromConfigPath(ks_ep_config.Pin)
+	}
 
 	//Certificates:
-	//private
 	ks_ep_config.PrivateKey.PrivateKey1Path = viper.GetString("node_server.endpoint_config.private_key.path_1")
 	if ks_ep_config.PrivateKey.PrivateKey1Path == "" {
 		panic("PrivateKey1Path is not set or empty")
@@ -292,18 +297,21 @@ func GetNodeServerConfig() NodeServerConfig {
 		ks_ep_config.KeylogFile = util.AbsolutePathFromConfigPath(ks_ep_config.KeylogFile)
 	}
 
+	logLevelStr := viper.GetString("node_server.log.level")
+	logLevel, err := zerolog.ParseLevel(logLevelStr)
+	if err != nil {
+		logLevel = zerolog.DebugLevel
+	}
+
 	return NodeServerConfig{
 		Address:      address,
 		AddressHTTP:  address_http,
 		ASL_Endpoint: parse_endpoint(&ks_ep_config),
-	}
-}
+		GinMode:      viper.GetString("node_server.log.mode"),
 
-func GetLogTailConfig() LogTailConfig {
-	enabled := viper.GetBool("logtail.enabled")
-
-	return LogTailConfig{
-		Enabled: enabled,
+		Log: LogConfig{
+			Level: logLevel,
+		},
 	}
 }
 
@@ -316,6 +324,7 @@ func GetASLConfig() asl.ASLConfig {
 
 func GetACLConfig() ACLConfig {
 	policyPath := viper.GetString("acl_policy_path")
+	policyPath = util.AbsolutePathFromConfigPath(policyPath)
 
 	return ACLConfig{
 		PolicyPath: policyPath,
@@ -360,11 +369,11 @@ func GetKritis3mScaleConfig() (*Config, error) {
 		ACL:          GetACLConfig(),
 		ASLConfig:    GetASLConfig(),
 
-		CLI: CLIConfig{
-			Address:  viper.GetString("cli.address"),
-			Timeout:  viper.GetDuration("cli.timeout"),
-			Insecure: viper.GetBool("cli.insecure"),
-		},
+		// CLI: CLIConfig{
+		// 	Address:  viper.GetString("cli.address"),
+		// 	Timeout:  viper.GetDuration("cli.timeout"),
+		// 	Insecure: viper.GetBool("cli.insecure"),
+		// },
 
 		Log: GetLogConfig(),
 	}, nil
@@ -407,10 +416,16 @@ func GetDatabaseConfig() DatabaseConfig {
 		log.Fatal().
 			Msgf("invalid database type %q, must be  sqlite3 ", type_)
 	}
+
+	logLevelStr := viper.GetString("database.log_level")
+	logLevel, err := zerolog.ParseLevel(logLevelStr)
+	if err != nil {
+		logLevel = zerolog.DebugLevel
+	}
 	return DatabaseConfig{
-		Type:     type_,
-		Debug:    debug,
-		LogLevel: viper.GetString("database.log_level"),
+		Type:  type_,
+		Debug: debug,
+		Level: logLevel,
 		Sqlite: SqliteConfig{
 			Path: util.AbsolutePathFromConfigPath(
 				viper.GetString("database.sqlite.path"),
