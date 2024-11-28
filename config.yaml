@@ -62,7 +62,7 @@ log_database:
 #global log module
 log:
   # Output formatting for logs: text or json
-  format: json 
+  format: text 
   level: info
 
 acl_policy_path: ./db_startup_data/startup.json

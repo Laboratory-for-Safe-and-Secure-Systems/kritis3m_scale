@@ -25,25 +25,27 @@ func init() {
 
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().
+		StringVarP(&cfgFile, "config", "c", "", "Path to the configuration file (default is ./config.yaml)")
+	rootCmd.PersistentFlags().
 		StringP("output", "o", "", "Output format. Empty for human-readable, 'json', 'json-line' or 'yaml'")
 	rootCmd.PersistentFlags().
 		Bool("force", false, "Disable prompts and forces the execution")
 }
 
 func initConfig() {
-	cfgFile, _ = filepath.Abs("/home/philipp/kritis/kritis3m_scale2/kritis3m_scale/config.yaml")
-	if cfgFile != "" {
-		err := types.LoadConfig(cfgFile, true)
-		if err != nil {
-			log.Fatal().Caller().Err(err).Msgf("Error loading config file %s", cfgFile)
-		}
-	} else {
-		err := types.LoadConfig("", false)
-		if err != nil {
-			log.Fatal().Caller().Err(err).Msgf("Error loading config")
-		}
+	// If the --config flag is not set, use a default value
+	if cfgFile == "" {
+		cfgFile = "./config.yaml" // Default file path if no argument provided
 	}
 
+	// Convert the path to absolute for clarity
+	cfgFile, _ = filepath.Abs(cfgFile)
+
+	// Attempt to load the configuration
+	err := types.LoadConfig(cfgFile, true)
+	if err != nil {
+		log.Fatal().Err(err).Msgf("Error loading config file %s", cfgFile)
+	}
 	cfg, err := types.GetKritis3mScaleConfig()
 	if err != nil {
 		log.Fatal().Caller().Err(err).Msg("Failed to get kritis3m-scale configuration")
