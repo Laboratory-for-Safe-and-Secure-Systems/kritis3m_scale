@@ -266,9 +266,6 @@ func GetNodeServerConfig() NodeServerConfig {
 		ks_ep_config.SecureElementMiddlewarePath = util.AbsolutePathFromConfigPath(ks_ep_config.SecureElementMiddlewarePath)
 	}
 	ks_ep_config.Pin = viper.GetString("node_server.endpoint_config.pin")
-	if ks_ep_config.Pin != "" {
-		ks_ep_config.Pin = util.AbsolutePathFromConfigPath(ks_ep_config.Pin)
-	}
 
 	//Certificates:
 	ks_ep_config.PrivateKey.PrivateKey1Path = viper.GetString("node_server.endpoint_config.private_key.path_1")
