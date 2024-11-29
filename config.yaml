@@ -3,14 +3,14 @@
 node_server:
   address: "192.168.1.4:8080"
   log:
-    log_level: warn 
+    log_level: debug 
     mode: debug # release debug test
   endpoint_config:
     private_key:
       path_1: "./certs/privateKey.pem"
       path_2: ~
     server_cert_path: "./certs/chain.pem" #device certificate chain
-    root_certificate: "./certs/cert.pem"
+    root_certificate: "./certs/ca.pem"
     key_log_file: "./keylog.txt"
     mutual_authentication: false 
     no_encryption: false 
@@ -63,7 +63,7 @@ log_database:
 log:
   # Output formatting for logs: text or json
   format: text 
-  level: info
+  level: debug 
 
 acl_policy_path: ./db_startup_data/startup.json
 

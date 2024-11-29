@@ -45,19 +45,11 @@
           },
           "applications": [
             {
-              "id": 0,
+              "id": 1,
               "type": 0,
               "state": true,
-              "server_endpoint_addr": "192.168.1.4:8000",
+              "server_endpoint_addr": "[fd12:3456:789a:0001::4]:8100",
               "client_endpoint_addr": "[fd12:3456:789a:0001::4]:443",
-              "ep1_id": 1
-            },
-            {
-              "id": 2,
-              "type": 1,
-              "state": true,
-              "server_endpoint_addr": "192.168.1.4:443",
-              "client_endpoint_addr": "192.168.1.4:1232",
               "ep1_id": 1
             }
           ]
@@ -121,18 +113,10 @@
           "applications": [
             {
               "id": 5,
-              "type": 0,
-              "state": true,
-              "server_endpoint_addr": "[fd12:3456:789a:0001::4]:8100",
-              "client_endpoint_addr": "192.168.1.4:443",
-              "ep1_id": 1
-            },
-            {
-              "id": 6,
               "type": 1,
               "state": true,
               "server_endpoint_addr": "[fd12:3456:789a:0001::4]:443",
-              "client_endpoint_addr": "192.168.1.4:8000",
+              "client_endpoint_addr": "192.168.0.4:1232",
               "ep1_id": 1
             }
           ]
