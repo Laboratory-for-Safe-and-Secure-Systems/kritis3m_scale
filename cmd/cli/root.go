@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/philslol/kritis3m_scale/kritis3m_control/types"
+	"github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/kritis3m_control/types"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -72,7 +72,7 @@ var rootCmd = &cobra.Command{
 	Short: "kritis3m_scale - a kritis3m control server",
 	Long: `
 krits3m_scale is a server that is used to control kritis3m gateways
-	github.com/philslol/kritis3m_scale`,
+	github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale`,
 }
 
 func Execute() {

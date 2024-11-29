@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/philslol/kritis3m_scale/kritis3m_control"
-	"github.com/philslol/kritis3m_scale/kritis3m_control/types"
+	"github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/kritis3m_control"
+	"github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/kritis3m_control/types"
 
-	// "github.com/philslol/kritis3m_scale/kritis3m_control/util"
+	// "github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/kritis3m_control/util"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 )

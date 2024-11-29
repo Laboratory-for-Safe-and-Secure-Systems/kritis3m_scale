@@ -4,8 +4,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/cmd/cli"
 	"github.com/jagottsicher/termcolor"
-	"github.com/philslol/kritis3m_scale/cmd/cli"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )

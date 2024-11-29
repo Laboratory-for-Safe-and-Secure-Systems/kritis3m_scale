@@ -3,8 +3,8 @@ package node_server
 import (
 	"time"
 
+	"github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/kritis3m_control/controller"
 	"github.com/gin-gonic/gin"
-	"github.com/philslol/kritis3m_scale/kritis3m_control/controller"
 	"github.com/rs/zerolog"
 )
 

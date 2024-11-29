@@ -1,8 +1,8 @@
 package controller
 
 import (
+	"github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/kritis3m_control/service"
 	"github.com/gin-gonic/gin"
-	"github.com/philslol/kritis3m_scale/kritis3m_control/service"
 )
 
 type NodeRegisterController interface {

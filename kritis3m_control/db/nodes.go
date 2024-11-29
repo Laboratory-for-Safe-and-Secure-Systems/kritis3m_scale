@@ -5,7 +5,7 @@ import (
 
 	"time"
 
-	"github.com/philslol/kritis3m_scale/kritis3m_control/types"
+	"github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/kritis3m_control/types"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 )

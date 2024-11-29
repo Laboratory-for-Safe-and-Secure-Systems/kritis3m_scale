@@ -21,12 +21,12 @@ import (
 
 	"net/http"
 
-	"github.com/philslol/kritis3m_scale/kritis3m_control/controller"
-	"github.com/philslol/kritis3m_scale/kritis3m_control/db"
-	"github.com/philslol/kritis3m_scale/kritis3m_control/node_server"
-	"github.com/philslol/kritis3m_scale/kritis3m_control/service"
-	"github.com/philslol/kritis3m_scale/kritis3m_control/types"
-	"github.com/philslol/kritis3m_scale/kritis3m_control/util"
+	"github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/kritis3m_control/controller"
+	"github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/kritis3m_control/db"
+	"github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/kritis3m_control/node_server"
+	"github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/kritis3m_control/service"
+	"github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/kritis3m_control/types"
+	"github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/kritis3m_control/util"
 )
 
 //tasks: start server

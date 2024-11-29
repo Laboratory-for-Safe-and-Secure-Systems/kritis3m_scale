@@ -8,7 +8,7 @@ import (
 	"time"
 
 	asl "github.com/Laboratory-for-Safe-and-Secure-Systems/go-asl"
-	"github.com/philslol/kritis3m_scale/kritis3m_control/util"
+	"github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/kritis3m_control/util"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
