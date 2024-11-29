@@ -10,7 +10,7 @@ node_server:
       path_1: "./certs/privateKey.pem"
       path_2: ~
     server_cert_path: "./certs/chain.pem" #device certificate chain
-    root_certificate: "./certs/ca.pem"
+    root_certificate: "./certs/cert.pem"
     key_log_file: "./keylog.txt"
     mutual_authentication: false 
     no_encryption: false 
