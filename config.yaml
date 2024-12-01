@@ -65,5 +65,5 @@ log:
   format: text 
   level: debug 
 
-acl_policy_path: ./db_startup_data/startup.json
+acl_policy_path: ./startup.json
 

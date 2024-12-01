@@ -81,7 +81,7 @@ func NewKritis3m_scale(cfg *types.Config) (*Kritis3m_Scale, error) {
 }
 
 func (ks *Kritis3m_Scale) Import() {
-	path := "./db_startup_data/startup.json"
+	path := ks.cfg.ACL.PolicyPath
 	path = util.AbsolutePathFromConfigPath(path)
 	jsonFile, err := os.Open(path)
 	if err != nil {
@@ -277,6 +277,62 @@ func (ks *Kritis3m_Scale) ListNodes(id int, includeConfig bool) {
 func (ks *Kritis3m_Scale) Serve() {
 
 	go func() {
+		gin.SetMode(gin.ReleaseMode)
+		router := gin.New()
+
+		// router.Use(service.ErrorHandler(log.Logger))
+		router.Use(gin.Recovery())
+		router.POST("/api/trigger", func(c *gin.Context) {
+			type Payload struct {
+				CfgID  uint `json:"cfg_id" binding:"required"`
+				NodeID uint `json:"node_id" binding:"required"`
+			}
+
+			var payload Payload
+			// Bind JSON to the struct and validate
+			if err := c.ShouldBindJSON(&payload); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{
+					"error": "Invalid JSON payload",
+					"msg":   err.Error(),
+				})
+				return
+			}
+			node, err := ks.db.GetNodeby_ID(payload.NodeID)
+			if err != nil {
+				log.Err(err).Msg("can't fetch node")
+				c.JSON(http.StatusBadRequest, gin.H{
+					"error": "Invalid JSON payload",
+					"msg":   err.Error(),
+				})
+				return
+			}
+
+			err = ks.db.ActivateConfig_byCfgID(payload.CfgID, node.SerialNumber)
+			if err != nil {
+				log.Err(err).Msg("can't fetch node")
+				c.JSON(http.StatusBadRequest, gin.H{
+					"error": "could not activate",
+					"msg":   err.Error(),
+				})
+				return
+			}
+			sel_nodes, err := ks.db.GetActiveConfigs()
+
+			if err != nil {
+				log.Err(err).Msg("can't get active configs")
+			}
+			// Process the payload (e.g., store in DB, perform actions)
+			// For now, we just echo back the received data
+			c.JSON(http.StatusOK, gin.H{
+				"message":   "Payload received successfully",
+				"sel_nodes": sel_nodes,
+			})
+
+		})
+		router.Run(":8181")
+	}()
+
+	go func() {
 		serverEndpoint := asl.ASLsetupServerEndpoint(&ks.cfg.NodeServer.ASL_Endpoint)
 		if serverEndpoint == nil {
 			fmt.Println("Error setting up server endpoint")
@@ -298,8 +354,6 @@ func (ks *Kritis3m_Scale) Serve() {
 	}()
 
 	select {}
-	log.Info().Msg("server down")
-
 }
 func CustomLoggerMiddleware(logger zerolog.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
