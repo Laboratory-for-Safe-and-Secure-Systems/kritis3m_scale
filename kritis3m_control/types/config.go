@@ -283,11 +283,11 @@ func GetNodeServerConfig() NodeServerConfig {
 	}
 	ks_ep_config.DeviceCertificateChain = util.AbsolutePathFromConfigPath(ks_ep_config.DeviceCertificateChain)
 	//root cert
+
 	ks_ep_config.RootCertificate = util.AbsolutePathFromConfigPath(viper.GetString("node_server.endpoint_config.root_certificate"))
 	if ks_ep_config.RootCertificate == "" {
 		panic("RootCertificate is not set or empty")
 	}
-	ks_ep_config.RootCertificate = util.AbsolutePathFromConfigPath(ks_ep_config.RootCertificate)
 	//keylogfile
 	ks_ep_config.KeylogFile = util.AbsolutePathFromConfigPath(viper.GetString("node_server.endpoint_config.key_log_file"))
 	if ks_ep_config.KeylogFile != "" {
