@@ -25,7 +25,7 @@ func init() {
 
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().
-		StringVarP(&cfgFile, "config", "c", "", "Path to the configuration file (default is ./config.yaml)")
+		StringVar(&cfgFile, "config", "", "Path to the configuration file (default is ./config.yaml)")
 	rootCmd.PersistentFlags().
 		StringP("output", "o", "", "Output format. Empty for human-readable, 'json', 'json-line' or 'yaml'")
 	rootCmd.PersistentFlags().

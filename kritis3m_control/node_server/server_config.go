@@ -50,7 +50,6 @@ func ZerologMiddleware(logger zerolog.Logger) gin.HandlerFunc {
 }
 
 func Init(ctrl_logger controller.LogController,
-	ctrl_heartbeat controller.NodeHeartbeatController,
 	ctrl_register controller.NodeRegisterController,
 	logger zerolog.Logger, mode string) *gin.Engine {
 
@@ -62,12 +61,9 @@ func Init(ctrl_logger controller.LogController,
 	router.Use(gin.Recovery())
 	api := router.Group("/api/node/:serialnumber")
 	{
+		api.POST("/config/:config_id/version/:version_number", ctrl_register.GetStatusReport)
 		initial := api.Group("/initial")
 		initial.GET("/register", ctrl_register.InitialAssignConfiguration)
-
-		operation := api.Group("/operation/version/:version_number")
-		operation.GET("register/instructed", ctrl_register.InstructedAssignConfiguration)
-		operation.GET("/heartbeat", ctrl_heartbeat.RespondHeartbeatRequest)
 
 		logging_api := api.Group("/logger")
 		logging_api.POST("/active_con", ctrl_logger.PushActiveConnections)

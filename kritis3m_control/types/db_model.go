@@ -124,15 +124,14 @@ type DBNode struct {
 
 // Node represents a node within a network
 type DBNodeConfig struct {
-	CreatedAt         time.Time      `json:"-"`
-	DeletedAt         gorm.DeletedAt `json:"-" gorm:"index"`
-	ID                uint           `gorm:"primarykey" json:"id"`
-	NodeID            uint           `json:"-"`
-	LogLevel          uint           `gorm:"default:3" json:"log_level,omitempty"`
-	UpdatedAt         time.Time      `json:"updated_at,omitempty"`
-	ConfigName        string         `json:"config_name"`
-	Version           uint           `gorm:"default:0" json:"version,omitempty"`
-	HeartbeatInterval time.Duration  `json:"hb_interval"`
+	CreatedAt  time.Time      `json:"-"`
+	DeletedAt  gorm.DeletedAt `json:"-" gorm:"index"`
+	ID         uint           `gorm:"primarykey" json:"id"`
+	NodeID     uint           `json:"-"`
+	LogLevel   uint           `gorm:"default:3" json:"log_level,omitempty"`
+	UpdatedAt  time.Time      `json:"updated_at,omitempty"`
+	ConfigName string         `json:"config_name"`
+	Version    uint           `gorm:"default:0" json:"version,omitempty"`
 
 	HardwareConfig []*HardwareConfig `gorm:"foreignKey:ConfigID" json:"hw_config"`
 

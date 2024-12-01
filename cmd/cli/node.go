@@ -9,12 +9,12 @@ func init() {
 	rootCmd.AddCommand(nodeCmd)
 	// Add listNodesCmd as a subcommand of nodeCmd
 	listNodesCmd.Flags().IntP("id", "i", -1, "search node with id")
-	listNodesCmd.Flags().BoolP("cfg", "c", false, "include config")
+	listNodesCmd.Flags().Bool("with_cfg", false, "include configs")
 	nodeCmd.AddCommand(listNodesCmd) // Attach listNodesCmd to nodeCmd
 
 	nodeCmd.AddCommand(activateConfigCmd) // Attach listNodesCmd to nodeCmd
-	activateConfigCmd.Flags().IntP("node_id", "i", -1, "Select a node, with a certain id(node_id), for which a configuration will be chosen")
-	activateConfigCmd.Flags().IntP("cfg_id", "c", -1, "Chose a configuration with a certain(cfg_id), which will be assigned to a node")
+	activateConfigCmd.Flags().Int("node_id", -1, "activate node with id <node_id>")
+	activateConfigCmd.Flags().Int("cfg_id", -1, "activate configuration with config id <cfg_id>")
 	activateConfigCmd.MarkFlagRequired("node_id")
 	activateConfigCmd.MarkFlagRequired("cfg_id")
 
@@ -24,7 +24,7 @@ func init() {
 	configCmd.AddCommand(listconfigsCmd) // Attach listNodesCmd to nodeCmd
 
 	listconfigsCmd.Flags().IntP("id", "i", -1, "search config with id")
-	listconfigsCmd.Flags().BoolP("appls", "a", false, "include application ids")
+	listconfigsCmd.Flags().Bool("with_appls", false, "include application ids")
 
 }
 
@@ -67,7 +67,7 @@ var listNodesCmd = &cobra.Command{
 			log.Err(err).Msg("err getting id")
 			return
 		}
-		includeConfig, _ := cmd.Flags().GetBool("cfg")
+		includeConfig, _ := cmd.Flags().GetBool("with_cfg")
 		if err != nil {
 
 			log.Err(err).Msg("err getting cfg flag")
@@ -129,7 +129,7 @@ var listconfigsCmd = &cobra.Command{
 			return
 		}
 
-		includeAppls, err := cmd.Flags().GetBool("appls")
+		includeAppls, err := cmd.Flags().GetBool("with_appls")
 		if err != nil {
 
 			log.Err(err).Msg("err getting  appl flag")

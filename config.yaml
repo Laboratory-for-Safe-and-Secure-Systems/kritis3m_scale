@@ -4,7 +4,7 @@ node_server:
   address: "192.168.1.4:8080"
   log:
     log_level: debug 
-    mode: debug # release debug test
+    mode: release # release debug test
   endpoint_config:
     private_key:
       path_1: "./certs/privateKey.pem"
@@ -42,7 +42,7 @@ node_server:
 
 asl_config:
   logging_enabled: true
-  log_level: 4
+  log_level: 2
 
 database:
   type: sqlite

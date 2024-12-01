@@ -15,9 +15,18 @@ func (db *KSDatabase) GetConfigFor_DistributionService(node_id uint) (*types.DBN
 
 func getconfigfor_distributionservice(tx *gorm.DB, node_id uint) (*types.DBNodeConfig, error) {
 	var nodeConfig *types.DBNodeConfig
+	var selected_config types.SelectedConfiguration
+	if err := tx.Where("node_id = ?", node_id).First(&selected_config).Error; err != nil {
+		log.Err(err).Msgf("error finding selected configuration for node %d", node_id)
+		return nil, err
+	}
 
-	if err := tx.Preload("Whitelist.TrustedClients").Preload("HardwareConfig").Preload("Application").Where(&types.DBNodeConfig{NodeID: node_id}).First(&nodeConfig).Error; err != nil {
-		log.Err(err).Msgf("error getting configuration")
+	if err := tx.
+		Preload("Whitelist.TrustedClients").
+		Preload("HardwareConfig").
+		Preload("Application").
+		Where(&types.DBNodeConfig{ID: selected_config.ConfigID}).First(&nodeConfig).Error; err != nil {
+		log.Err(err).Msgf("error fetching data of configuration with cfg_id: %d", selected_config.ConfigID)
 		return nil, err
 	}
 

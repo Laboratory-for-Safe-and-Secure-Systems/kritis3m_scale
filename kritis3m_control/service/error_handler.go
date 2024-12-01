@@ -10,7 +10,7 @@ import (
 //create function ErrorHandler with argument zerologger and return gin.HandlerFunc
 
 type ErrorJson struct {
-	status     string `json:"status"`
+	status     string
 	error_type string `json:"type"`
 }
 

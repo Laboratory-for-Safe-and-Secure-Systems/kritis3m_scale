@@ -58,16 +58,14 @@ func NewKritis3m_scale(cfg *types.Config) (*Kritis3m_Scale, error) {
 	}
 	// app.log_db, err = db.NewLogDatabase(cfg.Log_Database)
 
-	serv_heart := service.NewNodeHeartbeatServiceImpl(app.db)
 	serv_log := service.NewLogServiceImpl(app.log_db)
 	serv_reg := service.NewNodeRegisterServiceImpl(app.db)
 	ctrl_log := controller.NewLogControllerImpl(serv_log)
-	ctrl_hard := controller.NewHeartbeatControllerImpl(serv_heart)
 
 	ctrl_reg := controller.NewNodeRegisterControllerImpl(serv_reg)
 
 	ginLogger := log.With().Str("service", "gin").Logger().Level(app.cfg.NodeServer.Log.Level)
-	router := node_server.Init(ctrl_log, ctrl_hard, ctrl_reg, ginLogger, cfg.NodeServer.GinMode)
+	router := node_server.Init(ctrl_log, ctrl_reg, ginLogger, cfg.NodeServer.GinMode)
 
 	err = asl.ASLinit(&cfg.ASLConfig)
 	if err != nil {
@@ -150,10 +148,10 @@ func (ks *Kritis3m_Scale) Listconfigs(cfg_id int, includeAppls bool) {
 
 	// Print the table header
 	if includeAppls {
-		fmt.Printf("%-10s %-20s %-15s %-10s %-10s %-10s %-20s %-20s %-10s %-10s %-10s\n",
-			"ID", "Version", "HB Interval", "Whitelist ID", "Appl ID", "State", "Type", "Listening IP:Port", "Client IP:Port", "Ep1 ID", "Ep2 ID")
+		fmt.Printf("%-10s %-20s %-10s %-10s %-10s %-20s %-20s %-10s %-10s %-10s\n",
+			"ID", "Version", "Whitelist ID", "Appl ID", "State", "Type", "Listening IP:Port", "Client IP:Port", "Ep1 ID", "Ep2 ID")
 	} else {
-		fmt.Printf("%-10s %-20s %-15s %-10s\n", "ID", "Version", "HB Interval", "Whitelist ID")
+		fmt.Printf("%-10s %-20s %-10s\n", "ID", "Version", "Whitelist ID")
 	}
 
 	// Iterate over each configuration
@@ -169,19 +167,19 @@ func (ks *Kritis3m_Scale) Listconfigs(cfg_id int, includeAppls bool) {
 			// Print each application for the current configuration
 			if len(appls) > 0 {
 				for _, appl := range appls {
-					fmt.Printf("%-10d %-20d %-15s %-10d %-10d %-10t %-20s %-20s %-20s %-10d %-10d\n",
-						config.ID, config.Version, config.HeartbeatInterval.String(), config.Whitelist.ID,
+					fmt.Printf("%-10d %-20d %-10d %-10d %-10t %-20s %-20s %-20s %-10d %-10d\n",
+						config.ID, config.Version, config.Whitelist.ID,
 						appl.ID, appl.State, appl.Type.String(), appl.ServerEndpointAddr, appl.ClientEndpointAddr, appl.Ep1ID, appl.Ep2ID)
 				}
 			} else {
 				// No applications, print config without app details
-				fmt.Printf("%-10d %-20d %-15s %-10d %-10s %-10s %-10s %-20s %-20s %-10s %-10s\n",
-					config.ID, config.Version, config.HeartbeatInterval.String(), config.Whitelist.ID,
+				fmt.Printf("%-10d %-20d %-10d %-10s %-10s %-10s %-20s %-20s %-10s %-10s\n",
+					config.ID, config.Version, config.Whitelist.ID,
 					"N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A")
 			}
 		} else {
 			// Print configuration without application details
-			fmt.Printf("%-10d %-20d %-15s %-10d\n", config.ID, config.Version, config.HeartbeatInterval.String(), config.Whitelist.ID)
+			fmt.Printf("%-10d %-20d %-10d\n", config.ID, config.Version, config.Whitelist.ID)
 		}
 	}
 }
@@ -204,14 +202,23 @@ func (ks *Kritis3m_Scale) ListActive() {
 }
 
 func (ks *Kritis3m_Scale) ActivateConfig(node_id uint, cfg_id uint) {
-	cfg, err := ks.db.GetActiveConfigOfNodeby_ID(node_id)
+	cfg, err := ks.db.GetConfigby_ID(cfg_id)
 	if err != nil {
-		log.Err(err)
-		log.Info().Msg("currently no configuration selected")
-	} else {
-		log.Info().Msgf("previous active configuration has id %d", cfg.ID)
+		log.Err(err).Msgf("couldnt fetch matching configuration of cfg_id %d", cfg_id)
+		return
 	}
-	ks.db.ActivateConfig(node_id, cfg_id)
+
+	if cfg.NodeID != node_id {
+		log.Error().Msgf("cfg with id %d, does not belong to node with id %d", cfg_id, node_id)
+		return
+	}
+
+	node, err := ks.db.GetNodeby_ID(node_id)
+	if err != nil {
+		return
+	}
+
+	ks.db.ActivateConfig_byCfgID(cfg_id, node.SerialNumber)
 }
 
 // launches a GIN server with Kritis3m_api

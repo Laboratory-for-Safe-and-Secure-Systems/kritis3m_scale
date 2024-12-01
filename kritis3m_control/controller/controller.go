@@ -7,7 +7,7 @@ import (
 
 type NodeRegisterController interface {
 	InitialAssignConfiguration(c *gin.Context)
-	InstructedAssignConfiguration(c *gin.Context)
+	GetStatusReport(c *gin.Context)
 }
 
 type NodeHeartbeatController interface {
@@ -38,20 +38,9 @@ type NodeRegisterControllerImpl struct {
 func (ctrl NodeRegisterControllerImpl) InitialAssignConfiguration(c *gin.Context) {
 	ctrl.svc.InitialAssignConfiguration(c)
 }
-func (ctrl NodeRegisterControllerImpl) InstructedAssignConfiguration(c *gin.Context) {
-	ctrl.svc.InstructedAssignConfiguration(c)
-}
 
-func NewHeartbeatControllerImpl(svc service.NodeHeartbeatServiceImpl) NodeHeartbeatControllerImpl {
-	return NodeHeartbeatControllerImpl{svc: svc}
-}
-
-type NodeHeartbeatControllerImpl struct {
-	svc service.NodeHeartbeatService
-}
-
-func (ctrl NodeHeartbeatControllerImpl) RespondHeartbeatRequest(c *gin.Context) {
-	ctrl.svc.RespondHeartbeatRequest(c)
+func (ctrl NodeRegisterControllerImpl) GetStatusReport(c *gin.Context) {
+	ctrl.svc.GetStatusReport(c)
 }
 
 // ------------------------LogController

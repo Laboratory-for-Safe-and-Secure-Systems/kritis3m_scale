@@ -1,9 +1,11 @@
 package db
 
 import (
-	"time"
+	"errors"
+	"fmt"
 
 	"github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/kritis3m_control/types"
+	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 )
 
@@ -22,11 +24,94 @@ type ConfigurationHandler interface {
 	AddConfigto_NodeSerialNumber(noide_serialnumber string, cfg *types.DBNodeConfig) error
 	AddConfigto_NodeID(noide_id uint, cfg *types.DBNodeConfig) error
 	AddConfigto_Node(node *types.DBNode, cfg *types.DBNodeConfig) error
-	AddConfigto_NodeValues(node *types.DBNode, hb_inteval time.Duration, version uint) error
 	AddHwConfigto_Config(config_id uint, hw_cfg *types.HardwareConfig) error
 
 	UpdateConfig_byID(hw_id uint, cfg *types.DBNodeConfig) error
 	UpdateHwConfig(config_id uint, hw_cfg *types.HardwareConfig) error
+
+	ActiveConfigSetState_byCfgID(cfg_id uint, new_state types.NodeState) error
+	ActivateConfig_byCfgID(cfg_id uint, node_id uint, new_state types.NodeState) error
+}
+
+func (db *KSDatabase) ActiveConfigSetState_byCfgID(cfg_id uint, new_state types.NodeState) error {
+	return db.Write(func(tx *gorm.DB) error {
+		return activeconfigsetstate_bycfgid(tx, cfg_id, new_state)
+	})
+
+}
+
+func (db *KSDatabase) ActivateConfig_byCfgID(cfg_id uint, serial_number string) error {
+	node, err := db.GetNodeby_SerialNumber(serial_number)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Msgf("Node with serial number %s, not known", serial_number)
+		}
+		return err
+	}
+	return db.Write(func(tx *gorm.DB) error {
+		return activateconfig_bycfgid(tx, cfg_id, node.ID)
+	})
+}
+
+// activateconfig_bycfgid manages the activation of a configuration for a specific node
+// It either updates an existing entry or creates a new one if no entry exists
+func activateconfig_bycfgid(tx *gorm.DB, cfg_id uint, node_id uint) error {
+	// First, check if an entry for this node already exists
+	var existingConfig types.SelectedConfiguration
+	result := tx.Where("node_id = ?", node_id).First(&existingConfig)
+
+	if result.Error != nil {
+		// No existing configuration found - create a new entry
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+
+			newConfig := types.SelectedConfiguration{
+				NodeID:    node_id,
+				ConfigID:  cfg_id,
+				NodeState: types.NotSeen,
+			}
+			if err := tx.Create(&newConfig).Error; err != nil {
+				return err
+			}
+			return nil
+		}
+		// Other database error
+		return result.Error
+	}
+
+	// If existing configuration has a different ConfigID, update it
+	if existingConfig.ConfigID != cfg_id {
+		log.Info().Msgf("Node with node id %d, hat cfg with cfg id %d. New cfg id is: %d", node_id, existingConfig.ConfigID, cfg_id)
+		existingConfig.ConfigID = cfg_id
+		existingConfig.NodeState = types.NotSeen
+		if err := tx.Save(&existingConfig).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// activeconfigsetstate_bycfgid updates the state of a specific configuration
+// It throws an error if the configuration is not found
+func activeconfigsetstate_bycfgid(tx *gorm.DB, config_id uint, new_state types.NodeState) error {
+	// Find the configuration first
+	var selectedConfig types.SelectedConfiguration
+	result := tx.Where("config_id = ?", config_id).First(&selectedConfig)
+
+	// Check if configuration exists
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("configuration with ID %d not found in selected configurations", config_id)
+		}
+		return fmt.Errorf("database error while finding configuration: %w", result.Error)
+	}
+
+	// Update the state
+	selectedConfig.NodeState = new_state
+	if err := tx.Save(&selectedConfig).Error; err != nil {
+		return fmt.Errorf("failed to update configuration state: %w", err)
+	}
+
+	return nil
 }
 
 func (db *KSDatabase) AddHwConfigto_Config(config_id uint, hw_cfg *types.HardwareConfig) error {
@@ -242,17 +327,16 @@ func addConfigto_Node(tx *gorm.DB, node *types.DBNode, cfg *types.DBNodeConfig) 
 	return tx.Create(cfg).Error
 }
 
-func (db *KSDatabase) AddConfigto_NodeValues(node *types.DBNode, hb_interval time.Duration, version uint) error {
+func (db *KSDatabase) AddConfigto_NodeValues(node *types.DBNode, version uint) error {
 	return db.Write(func(tx *gorm.DB) error {
-		return addConfigto_NodeValues(tx, node, hb_interval, version)
+		return addConfigto_NodeValues(tx, node, version)
 	})
 }
 
-func addConfigto_NodeValues(tx *gorm.DB, node *types.DBNode, hb_interval time.Duration, version uint) error {
+func addConfigto_NodeValues(tx *gorm.DB, node *types.DBNode, version uint) error {
 	config := &types.DBNodeConfig{
-		NodeID:            node.ID,
-		HeartbeatInterval: hb_interval,
-		Version:           version,
+		NodeID:  node.ID,
+		Version: version,
 	}
 	return tx.Create(config).Error
 }

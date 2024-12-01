@@ -112,6 +112,11 @@ func openDB(cfg types.DatabaseConfig, db_logger zerolog.Logger) (*gorm.DB, error
 	if err != nil {
 		log.Err(err).Msg("cant open database")
 	}
+	result := db.Exec("PRAGMA journal_mode=WAL")
+	if result.Error != nil {
+		log.Err(result.Error).Msg("Failed to set WAL mode")
+	}
+
 	db.Exec("PRAGMA mmap_size=268435456")
 
 	// // The pure Go SQLite library does not handle locking in
