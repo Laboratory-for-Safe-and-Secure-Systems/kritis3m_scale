@@ -226,7 +226,7 @@ func parse_endpoint(ep_yaml *KS_EndpointConfig) asl.EndpointConfig {
 	//keylogfile
 	if ep_yaml.KeylogFile != "" {
 		if _, err := os.Stat(ep_yaml.KeylogFile); errors.Is(err, os.ErrNotExist) {
-			panic("keylog file does not exist")
+			log.Warn().Msg("keylog file does not exist")
 		} else {
 			endpoint_config.KeylogFile = ep_yaml.KeylogFile
 		}
