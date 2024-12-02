@@ -231,7 +231,7 @@ func parse_endpoint(ep_yaml *KS_EndpointConfig) asl.EndpointConfig {
 			endpoint_config.KeylogFile = ep_yaml.KeylogFile
 		}
 	} else {
-		//its ok to have no keylogfile
+		log.Info().Msg("keylog_file not set")
 	}
 
 	return endpoint_config

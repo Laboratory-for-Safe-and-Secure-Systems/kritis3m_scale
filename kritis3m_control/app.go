@@ -272,64 +272,99 @@ func (ks *Kritis3m_Scale) ListNodes(id int, includeConfig bool) {
 		}
 	}
 }
+func (ks *Kritis3m_Scale) switchCrypto(cfg_id uint, node_id uint) bool {
+	// Fetch the node by ID
+	node, err := ks.db.GetNodeby_ID(node_id)
+	if err != nil {
+		log.Err(err).Msg("unknown node_id")
+		return false
+	}
 
-// launches a GIN server with Kritis3m_api
+	configs, err := ks.db.GetAllConfigsOfNodeby_ID(node_id)
+	if err != nil {
+		log.Err(err).Msgf("no configs for node with id %d", node_id)
+		return false
+	}
+
+	// Check if the configuration belongs to the node
+	for _, configs := range configs {
+		if configs.ID == cfg_id {
+			err = ks.db.ActivateConfig_byCfgID(cfg_id, node.SerialNumber)
+			return err == nil
+		}
+	}
+
+	log.Error().Uint("cfg_id", cfg_id).Uint("node_id", node_id).Msg("Configuration ID does not belong to the node")
+	return false
+}
+
 func (ks *Kritis3m_Scale) Serve() {
-
+	log.Info().Msg("in serve function")
 	go func() {
-		gin.SetMode(gin.ReleaseMode)
+		gin.SetMode(gin.DebugMode)
 		router := gin.New()
-
-		// router.Use(service.ErrorHandler(log.Logger))
+		log.Info().Msg("in handler for ui")
 		router.Use(gin.Recovery())
+
 		router.POST("/api/trigger", func(c *gin.Context) {
 			type Payload struct {
 				CfgID  uint `json:"cfg_id" binding:"required"`
 				NodeID uint `json:"node_id" binding:"required"`
 			}
+			log.Info().Msg("invoked trigger change crypto")
 
-			var payload Payload
-			// Bind JSON to the struct and validate
-			if err := c.ShouldBindJSON(&payload); err != nil {
+			var trigger_payload []*Payload
+			if err := c.BindJSON(&trigger_payload); err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{
 					"error": "Invalid JSON payload",
 					"msg":   err.Error(),
 				})
 				return
 			}
-			node, err := ks.db.GetNodeby_ID(payload.NodeID)
-			if err != nil {
-				log.Err(err).Msg("can't fetch node")
+			if len(trigger_payload) < 3 {
+				log.Error().Msg("payload is empty")
 				c.JSON(http.StatusBadRequest, gin.H{
-					"error": "Invalid JSON payload",
-					"msg":   err.Error(),
+					"message": "Empty payload",
 				})
 				return
 			}
 
-			err = ks.db.ActivateConfig_byCfgID(payload.CfgID, node.SerialNumber)
-			if err != nil {
-				log.Err(err).Msg("can't fetch node")
+			var activatedNodes []uint
+			var errorNodes []uint
+
+			for _, payload := range trigger_payload {
+				if ks.switchCrypto(payload.CfgID, payload.NodeID) {
+					log.Info().Msgf("node with id %d has now cfg with cfg id %d", payload.NodeID, payload.CfgID)
+					activatedNodes = append(activatedNodes, payload.NodeID)
+				} else {
+					log.Error().Msgf("node with id %d failed assign cfg with cfg id %d", payload.NodeID, payload.CfgID)
+					errorNodes = append(errorNodes, payload.NodeID)
+				}
+			}
+
+			if len(errorNodes) > 0 {
 				c.JSON(http.StatusBadRequest, gin.H{
-					"error": "could not activate",
-					"msg":   err.Error(),
+					"message":      "Some configurations could not be activated",
+					"activated":    activatedNodes,
+					"failed_nodes": errorNodes,
 				})
 				return
 			}
 			sel_nodes, err := ks.db.GetActiveConfigs()
-
 			if err != nil {
-				log.Err(err).Msg("can't get active configs")
+				log.Error().Msg("config not activated")
 			}
-			// Process the payload (e.g., store in DB, perform actions)
-			// For now, we just echo back the received data
-			c.JSON(http.StatusOK, gin.H{
-				"message":   "Payload received successfully",
-				"sel_nodes": sel_nodes,
-			})
 
+			c.JSON(http.StatusOK, gin.H{
+				"message":         "All configurations activated successfully",
+				"activated_nodes": activatedNodes,
+				"selnodes":        sel_nodes,
+			})
 		})
-		router.Run(":8181")
+
+		if err := router.Run(":8181"); err != nil {
+			log.Fatal().Err(err).Msg("Failed to start the server")
+		}
 	}()
 
 	go func() {
