@@ -14,8 +14,8 @@
           "config_name": "classic",
           "hw_config": [
             {
-              "cidr": "192.168.5.1/24",
-              "device": "eth0"
+              "cidr": "192.168.0.4/24",
+              "device": "wlp0s20f3"
             }
           ],
           "whitelist": {
@@ -24,11 +24,7 @@
             "trusted_clients": [
               {
                 "id": 1,
-                "client_endpoint_addr": "0.0.0.0:0"
-              },
-              {
-                "id": 2,
-                "client_endpoint_addr": "[0000:0000:0000:0000::0]:0"
+                "client_endpoint_addr": "<>:<>"
               }
             ]
           },
@@ -37,16 +33,16 @@
               "id": 1,
               "type": 0,
               "state": true,
-              "server_endpoint_addr": "192.168.5.1:7000",
-              "client_endpoint_addr": "192.168.5.2:443",
+              "server_endpoint_addr": "<>:<>",
+              "client_endpoint_addr": "<>:<>",
               "ep1_id": 1
             },
             {
               "id": 2,
               "type": 0,
               "state": true,
-              "server_endpoint_addr": "192.168.5.1:7001",
-              "client_endpoint_addr": "192.168.5.3:443",
+              "server_endpoint_addr": "<>:<>",
+              "client_endpoint_addr": "<>:<>",
               "ep1_id": 1
             }
           ]
@@ -59,8 +55,8 @@
           "config_name": "hybrid pqc",
           "hw_config": [
             {
-              "cidr": "192.168.5.1/24",
-              "device": "eth0"
+              "cidr": "192.168.0.4/24",
+              "device": "wlp0s20f3"
             }
           ],
           "whitelist": {
@@ -69,11 +65,7 @@
             "trusted_clients": [
               {
                 "id": 30,
-                "client_endpoint_addr": "0.0.0.0:0"
-              },
-              {
-                "id": 31,
-                "client_endpoint_addr": "[0000:0000:0000:0000::0]:0"
+                "client_endpoint_addr": "<>:<>"
               }
             ]
           },
@@ -82,16 +74,16 @@
               "id": 30,
               "type": 0,
               "state": true,
-              "server_endpoint_addr": "192.168.5.1:7000",
-              "client_endpoint_addr": "192.168.5.2:443",
+              "server_endpoint_addr": "<>:<>",
+              "client_endpoint_addr": "<>:<>",
               "ep1_id": 2
             },
             {
               "id": 31,
               "type": 0,
               "state": true,
-              "server_endpoint_addr": "192.168.5.1:7001",
-              "client_endpoint_addr": "192.168.5.3:443",
+              "server_endpoint_addr": "<>:<>",
+              "client_endpoint_addr": "<>:<>",
               "ep1_id": 2
             }
           ]
@@ -111,8 +103,8 @@
           "config_name": "classic",
           "hw_config": [
             {
-              "cidr": "192.168.5.2/24",
-              "device": "eth0"
+              "cidr": "192.168.1.2/24",
+              "device": "wlp0s20f3"
             }
           ],
           "whitelist": {
@@ -121,11 +113,7 @@
             "trusted_clients": [
               {
                 "id": 60,
-                "client_endpoint_addr": "0.0.0.0:0"
-              },
-              {
-                "id": 61,
-                "client_endpoint_addr": "[0000:0000:0000:0000::0]:0"
+                "client_endpoint_addr": "<>:<>"
               }
             ]
           },
@@ -134,16 +122,16 @@
               "id": 60,
               "type": 1,
               "state": true,
-              "server_endpoint_addr": "192.168.5.2:443",
-              "client_endpoint_addr": "192.168.5.2:6000",
+              "server_endpoint_addr": "<>:<>",
+              "client_endpoint_addr": "<>:<>",
               "ep1_id": 1
             },
             {
               "id": 61,
               "type": 0,
               "state": true,
-              "server_endpoint_addr": "192.168.5.2:6001",
-              "client_endpoint_addr": "192.168.5.3:443",
+              "server_endpoint_addr": "<>:<>",
+              "client_endpoint_addr": "<>:<>",
               "ep1_id": 1
             }
           ]
@@ -155,8 +143,8 @@
           "config_name": "hybrid pqc",
           "hw_config": [
             {
-              "cidr": "192.168.5.2/24",
-              "device": "eth0"
+              "cidr": "192.168.1.2/24",
+              "device": "wlp0s20f3"
             }
           ],
           "whitelist": {
@@ -165,11 +153,7 @@
             "trusted_clients": [
               {
                 "id": 90,
-                "client_endpoint_addr": "0.0.0.0:0"
-              },
-              {
-                "id": 91,
-                "client_endpoint_addr": "[0000:0000:0000:0000::0]:0"
+                "client_endpoint_addr": "<>:<>"
               }
             ]
           },
@@ -178,16 +162,16 @@
               "id": 90,
               "type": 1,
               "state": true,
-              "server_endpoint_addr": "192.168.5.2:443",
-              "client_endpoint_addr": "192.168.5.2:6000",
+              "server_endpoint_addr": "<>:<>",
+              "client_endpoint_addr": "<>:<>",
               "ep1_id": 2
             },
             {
               "id": 91,
               "type": 0,
               "state": true,
-              "server_endpoint_addr": "192.168.5.2:6001",
-              "client_endpoint_addr": "192.168.5.3:443",
+              "server_endpoint_addr": "<>:<>",
+              "client_endpoint_addr": "<>:<>",
               "ep1_id": 2
             }
           ]
@@ -207,8 +191,8 @@
           "config_name": "classic",
           "hw_config": [
             {
-              "cidr": "192.168.5.3/24",
-              "device": "eth0"
+              "cidr": "<>/24",
+              "device": "wlp0s20f3"
             }
           ],
           "whitelist": {
@@ -217,11 +201,7 @@
             "trusted_clients": [
               {
                 "id": 120,
-                "client_endpoint_addr": "0.0.0.0:0"
-              },
-              {
-                "id": 120,
-                "client_endpoint_addr": "[0000:0000:0000:0000::0]:0"
+                "client_endpoint_addr": "<>:<>"
               }
             ]
           },
@@ -230,8 +210,8 @@
               "id": 120,
               "type": 1,
               "state": true,
-              "server_endpoint_addr": "192.168.5.3:443",
-              "client_endpoint_addr": "192.168.5.3:5000",
+              "server_endpoint_addr": "<>:<>",
+              "client_endpoint_addr": "<>:<>",
               "ep1_id": 1
             }
           ]
@@ -243,8 +223,8 @@
           "config_name": "hybrid pqc",
           "hw_config": [
             {
-              "cidr": "192.168.5.3/24",
-              "device": "eth0"
+              "cidr": "192.168.1.2/24",
+              "device": "wlp0s20f3"
             }
           ],
           "whitelist": {
@@ -253,11 +233,7 @@
             "trusted_clients": [
               {
                 "id": 150,
-                "client_endpoint_addr": "0.0.0.0:0"
-              },
-              {
-                "id": 151,
-                "client_endpoint_addr": "[0000:0000:0000:0000::0]:0"
+                "client_endpoint_addr": "<>:<>"
               }
             ]
           },
@@ -266,8 +242,8 @@
               "id": 150,
               "type": 1,
               "state": true,
-              "server_endpoint_addr": "192.168.5.3:443",
-              "client_endpoint_addr": "192.168.5.3:5000",
+              "server_endpoint_addr": "<>:<>",
+              "client_endpoint_addr": "<>:<>",
               "ep1_id": 2
             }
           ]

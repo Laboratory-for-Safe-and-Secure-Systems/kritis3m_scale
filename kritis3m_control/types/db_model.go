@@ -27,6 +27,15 @@ const (
 
 )
 
+type Identity uint8
+
+const (
+	MANAGEMENT_SERVICE uint = iota
+	MANAGEMENT
+	REMOTE
+	PRODUCTION
+)
+
 // see linux/sys/socket.h PF_INET=2 &PF_INET6=10
 type ProtoFamiliy uint8
 
@@ -262,7 +271,7 @@ type DBIdentity struct {
 	UpdatedAt          time.Time      `json:"-"`
 	DeletedAt          gorm.DeletedAt `json:"-" gorm:"index"`
 	ID                 uint           `gorm:"primarykey" json:"id"`
-	Identity           uint           `json:"identity"`
+	Identity           Identity       `json:"identity"`
 	ServerEndpointAddr string         ` json:"server_endpoint_addr"`
 	ServerUrl          string         `json:"server_url"`
 	RevocationListUrl  string         `json:"revocation_list_url"`
