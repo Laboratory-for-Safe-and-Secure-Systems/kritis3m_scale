@@ -14,8 +14,8 @@
           "config_name": "classic",
           "hw_config": [
             {
-              "cidr": "192.168.0.4/24",
-              "device": "wlp0s20f3"
+              "cidr": "<>/cidr",
+              "device": "net_dev_name"
             }
           ],
           "whitelist": {
@@ -55,8 +55,8 @@
           "config_name": "hybrid pqc",
           "hw_config": [
             {
-              "cidr": "192.168.0.4/24",
-              "device": "wlp0s20f3"
+              "cidr": "<>/cidr",
+              "device": "net_dev_name"
             }
           ],
           "whitelist": {
@@ -103,8 +103,8 @@
           "config_name": "classic",
           "hw_config": [
             {
-              "cidr": "192.168.1.2/24",
-              "device": "wlp0s20f3"
+              "cidr": "<>/cidr",
+              "device": "net_dev_name"
             }
           ],
           "whitelist": {
@@ -143,8 +143,8 @@
           "config_name": "hybrid pqc",
           "hw_config": [
             {
-              "cidr": "192.168.1.2/24",
-              "device": "wlp0s20f3"
+              "cidr": "<>/cidr",
+              "device": "net_dev_name"
             }
           ],
           "whitelist": {
@@ -191,8 +191,8 @@
           "config_name": "classic",
           "hw_config": [
             {
-              "cidr": "<>/24",
-              "device": "wlp0s20f3"
+              "cidr": "<>/cidr",
+              "device": "net_dev_name"
             }
           ],
           "whitelist": {

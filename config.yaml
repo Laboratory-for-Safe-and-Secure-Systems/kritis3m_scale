@@ -1,7 +1,7 @@
 #all non absolute paths are added up with the directory of the config file 
 # suppose path: ./my/relative/path -> /path/to/configfile/my/relative/path
 node_server:
-  address: "192.168.5.1:8080"
+  address: ":8080"
   log:
     log_level: debug 
     mode: debug # release debug test
@@ -10,7 +10,7 @@ node_server:
       path_1: "./certs/privateKey.pem"
       path_2: ~
     server_cert_path: "./certs/chain.pem" #device certificate chain
-    root_certificate: "./certs/cert.pem"
+    root_certificate: "./certs/root.pem"
     mutual_authentication: false 
     no_encryption: false 
     secure_element_middleware_path: ~
