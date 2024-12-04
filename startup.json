@@ -14,8 +14,8 @@
           "config_name": "classic",
           "hw_config": [
             {
-              "cidr": "192.168.5.1/24",
-              "device": "eth0"
+              "cidr": "192.168.0.88/24",
+              "device": "dpmac"
             }
           ],
           "whitelist": {
@@ -37,16 +37,16 @@
               "id": 1,
               "type": 0,
               "state": true,
-              "server_endpoint_addr": "192.168.5.1:7000",
-              "client_endpoint_addr": "192.168.5.2:443",
+              "server_endpoint_addr": "192.168.0.88:8000",
+              "client_endpoint_addr": "192.168.0.5:443",
               "ep1_id": 1
             },
             {
               "id": 2,
               "type": 0,
               "state": true,
-              "server_endpoint_addr": "192.168.5.1:7001",
-              "client_endpoint_addr": "192.168.5.3:443",
+              "server_endpoint_addr": "192.168.0.88:8001",
+              "client_endpoint_addr": "192.168.0.6:443",
               "ep1_id": 1
             }
           ]
@@ -59,8 +59,8 @@
           "config_name": "hybrid pqc",
           "hw_config": [
             {
-              "cidr": "192.168.5.1/24",
-              "device": "eth0"
+              "cidr": "192.168.0.88/24",
+              "device": "dpmac"
             }
           ],
           "whitelist": {
@@ -82,16 +82,16 @@
               "id": 30,
               "type": 0,
               "state": true,
-              "server_endpoint_addr": "192.168.5.1:7000",
-              "client_endpoint_addr": "192.168.5.2:443",
+              "server_endpoint_addr": "192.168.0.88:8000",
+              "client_endpoint_addr": "192.168.0.5:443",
               "ep1_id": 2
             },
             {
               "id": 31,
               "type": 0,
               "state": true,
-              "server_endpoint_addr": "192.168.5.1:7001",
-              "client_endpoint_addr": "192.168.5.3:443",
+              "server_endpoint_addr": "192.168.0.88:8001",
+              "client_endpoint_addr": "192.168.0.6:443",
               "ep1_id": 2
             }
           ]
@@ -111,7 +111,7 @@
           "config_name": "classic",
           "hw_config": [
             {
-              "cidr": "192.168.5.2/24",
+              "cidr": "192.168.0.5/24",
               "device": "eth0"
             }
           ],
@@ -134,16 +134,16 @@
               "id": 60,
               "type": 1,
               "state": true,
-              "server_endpoint_addr": "192.168.5.2:443",
-              "client_endpoint_addr": "192.168.5.2:6000",
+              "server_endpoint_addr": "192.168.0.5:443",
+              "client_endpoint_addr": "192.168.0.5:8000",
               "ep1_id": 1
             },
             {
               "id": 61,
               "type": 0,
               "state": true,
-              "server_endpoint_addr": "192.168.5.2:6001",
-              "client_endpoint_addr": "192.168.5.3:443",
+              "server_endpoint_addr": "192.168.0.5:8001",
+              "client_endpoint_addr": "192.168.0.6:443",
               "ep1_id": 1
             }
           ]
@@ -155,7 +155,7 @@
           "config_name": "hybrid pqc",
           "hw_config": [
             {
-              "cidr": "192.168.5.2/24",
+              "cidr": "192.168.0.5/24",
               "device": "eth0"
             }
           ],
@@ -178,16 +178,16 @@
               "id": 90,
               "type": 1,
               "state": true,
-              "server_endpoint_addr": "192.168.5.2:443",
-              "client_endpoint_addr": "192.168.5.2:6000",
+              "server_endpoint_addr": "192.168.0.5:443",
+              "client_endpoint_addr": "192.168.0.5:8000",
               "ep1_id": 2
             },
             {
               "id": 91,
               "type": 0,
               "state": true,
-              "server_endpoint_addr": "192.168.5.2:6001",
-              "client_endpoint_addr": "192.168.5.3:443",
+              "server_endpoint_addr": "192.168.0.5:8001",
+              "client_endpoint_addr": "192.168.0.6:443",
               "ep1_id": 2
             }
           ]
@@ -207,7 +207,7 @@
           "config_name": "classic",
           "hw_config": [
             {
-              "cidr": "192.168.5.3/24",
+              "cidr": "192.168.0.6/24",
               "device": "eth0"
             }
           ],
@@ -230,8 +230,8 @@
               "id": 120,
               "type": 1,
               "state": true,
-              "server_endpoint_addr": "192.168.5.3:443",
-              "client_endpoint_addr": "192.168.5.3:5000",
+              "server_endpoint_addr": "192.168.0.6:443",
+              "client_endpoint_addr": "192.168.0.6:8000",
               "ep1_id": 1
             }
           ]
@@ -243,7 +243,7 @@
           "config_name": "hybrid pqc",
           "hw_config": [
             {
-              "cidr": "192.168.5.3/24",
+              "cidr": "192.168.0.6/24",
               "device": "eth0"
             }
           ],
@@ -266,8 +266,8 @@
               "id": 150,
               "type": 1,
               "state": true,
-              "server_endpoint_addr": "192.168.5.3:443",
-              "client_endpoint_addr": "192.168.5.3:5000",
+              "server_endpoint_addr": "192.168.0.6:443",
+              "client_endpoint_addr": "192.168.0.6:8000",
               "ep1_id": 2
             }
           ]
