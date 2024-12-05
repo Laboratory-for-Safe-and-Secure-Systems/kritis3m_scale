@@ -2,6 +2,7 @@ package node_server
 
 import (
 	"net"
+	"os"
 	"time"
 
 	asl "github.com/Laboratory-for-Safe-and-Secure-Systems/go-asl"
@@ -9,6 +10,7 @@ import (
 
 type ASLConn struct {
 	tcpConn    *net.TCPConn
+	file       *os.File
 	aslSession *asl.ASLSession
 }
 
@@ -26,6 +28,7 @@ func (c ASLConn) Write(b []byte) (n int, err error) {
 func (c ASLConn) Close() error {
 	asl.ASLCloseSession(c.aslSession)
 	asl.ASLFreeSession(c.aslSession)
+	c.file.Close()
 	return c.tcpConn.Close()
 }
 func (c ASLConn) LocalAddr() net.Addr {
@@ -66,6 +69,7 @@ func (l ASLListener) Accept() (net.Conn, error) {
 	session := asl.ASLCreateSession(l.Ep, fd)
 	aslConn := ASLConn{
 		tcpConn:    c.(*net.TCPConn),
+		file:       file,
 		aslSession: session,
 	}
 	return aslConn, nil
