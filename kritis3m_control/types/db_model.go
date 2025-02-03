@@ -1,12 +1,11 @@
 package types
 
 import (
-	"encoding/json"
-	"fmt"
-	"net"
 	"time"
 
 	asl "github.com/Laboratory-for-Safe-and-Secure-Systems/go-asl"
+	v1 "github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/gen/go/v1"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
 )
 
@@ -36,14 +35,6 @@ const (
 	PRODUCTION
 )
 
-// see linux/sys/socket.h PF_INET=2 &PF_INET6=10
-type ProtoFamiliy uint8
-
-const (
-	AF_INET  ProtoFamiliy = 2
-	AF_INET6 ProtoFamiliy = 10
-)
-
 func (a ApplicationType) String() string {
 	switch a {
 	case ForwardProxy:
@@ -63,6 +54,14 @@ func (a ApplicationType) String() string {
 	default:
 		return "Unknown"
 	}
+
+}
+func convertToUint32Slice(input []uint) []uint32 {
+	output := make([]uint32, len(input))
+	for i, v := range input {
+		output[i] = uint32(v)
+	}
+	return output
 }
 
 type ImportStructure struct {
@@ -80,10 +79,10 @@ type DistributionResponse struct {
 type NodeState int8
 
 const (
-	ErrorState          NodeState = -1
-	NotSeen             NodeState = 0
-	NodeRequestedConfig NodeState = 1
-	Running             NodeState = 2
+	ErrorState          NodeState = 0
+	NotSeen             NodeState = 1
+	NodeRequestedConfig NodeState = 2
+	Running             NodeState = 3
 )
 
 func (a NodeState) String() string {
@@ -171,59 +170,6 @@ type DBApplication struct {
 	LogLevel uint                 `json:"log_level,omitempty" gorm:"default:3"`
 }
 
-// @deprecated
-type Kritis3mAddr struct {
-	IP     net.IP       `json:"-" gorm:"type:varbinary(16)"` // To store up to 16 bytes (IPv6) // 0.0.0.0 for all ports
-	IPStr  string       `json:"ip" gorm:"-" `
-	Family ProtoFamiliy `json:"family"`
-	Port   uint16       `json:"port"` // 0 for all ports
-}
-
-// @deprecated
-func (e Kritis3mAddr) MarshalJSON() ([]byte, error) {
-	type Alias Kritis3mAddr
-	aux := struct {
-		IPStr string `json:"ip"`
-		Alias
-	}{
-		IPStr: e.IP.String(),
-		Alias: (Alias)(e),
-	}
-	return json.Marshal(aux)
-}
-
-// Custom JSON Unmarshaling
-// @deperecated
-func (addr *Kritis3mAddr) UnmarshalJSON(data []byte) error {
-	type RecursionBreaker *Kritis3mAddr
-	var recBreaker RecursionBreaker
-	recBreaker = (RecursionBreaker)(addr)
-
-	if err := json.Unmarshal(data, recBreaker); err != nil {
-		fmt.Print(err)
-		return err
-	}
-
-	//ip and family are missing
-	addr.IP = net.ParseIP(recBreaker.IPStr)
-	if addr.IP == nil {
-		return fmt.Errorf("can't parse ipstr to IP")
-	}
-	addr.IPStr = recBreaker.IPStr
-	var family ProtoFamiliy
-
-	if ip4 := recBreaker.IP.To4(); ip4 != nil {
-		family = AF_INET
-	} else if recBreaker.IP.To16() != nil {
-		family = AF_INET6
-	} else {
-		return fmt.Errorf("invalid IP address: %v", recBreaker.IPStr)
-	}
-	addr.Family = family
-
-	return nil
-}
-
 type DBWhitelist struct {
 	CreatedAt      time.Time           `json:"-"`
 	UpdatedAt      time.Time           `json:"-"`
@@ -232,6 +178,7 @@ type DBWhitelist struct {
 	NodeConfigID   uint                `json:"config_id,omitempty"`
 	TrustedClients []*DBTrustedClients `gorm:"foreignKey:WhitelistID" json:"trusted_clients"`
 }
+
 type ApplicationTrustsClients struct {
 	DBApplicationID    uint `gorm:"primaryKey"`
 	DBTrustedClientsID uint `gorm:"primaryKey"`
@@ -259,8 +206,8 @@ type DBAslEndpointConfig struct {
 	NoEncryption         bool                     `json:"no_encrypt"`
 	ASLKeyExchangeMethod asl.ASLKeyExchangeMethod `json:"kex"`
 	UseSecureElement     bool                     `json:"use_secure_elem"`
-	HybridSignatureMode  asl.HybridSignatureMode  `json:"signature_mode"`
-	Keylog               bool                     `json:"keylog"`
+	// HybridSignatureMode  asl.HybridSignatureMode  `json:"signature_mode"`
+	Keylog bool `json:"keylog"`
 
 	IdentityID uint        `json:"identity_id"`
 	Identity   *DBIdentity `json:"-" gorm:"foreignKey:IdentityID"`
@@ -275,4 +222,113 @@ type DBIdentity struct {
 	ServerEndpointAddr string         ` json:"server_endpoint_addr"`
 	ServerUrl          string         `json:"server_url"`
 	RevocationListUrl  string         `json:"revocation_list_url"`
+}
+
+func (config DBAslEndpointConfig) Proto() *v1.DBAslEndpointConfig {
+	return &v1.DBAslEndpointConfig{
+		Id:                   uint32(config.ID),
+		Name:                 config.Name,
+		MutualAuthentication: config.MutualAuthentication,
+		NoEncryption:         config.NoEncryption,
+		AslKeyExchangeMethod: uint32(config.ASLKeyExchangeMethod),
+		UseSecureElement:     config.UseSecureElement,
+		Keylog:               config.Keylog,
+		IdentityId:           uint32(config.IdentityID),
+	}
+}
+
+func (identity DBIdentity) Proto() *v1.DBIdentity {
+	return &v1.DBIdentity{
+		Id:                 uint32(identity.ID),
+		Identity:           v1.Identity(identity.Identity),
+		ServerEndpointAddr: identity.ServerEndpointAddr,
+		ServerUrl:          identity.ServerUrl,
+		RevocationListUrl:  identity.RevocationListUrl,
+	}
+}
+func (whitelist DBWhitelist) Proto() *v1.DBWhitelist {
+	var trustedClients []*v1.DBTrustedClients
+	for _, client := range whitelist.TrustedClients {
+		trustedClients = append(trustedClients, client.Proto())
+	}
+	return &v1.DBWhitelist{
+		Id:             uint32(whitelist.ID),
+		TrustedClients: trustedClients,
+		ConfigId:       uint32(whitelist.NodeConfigID),
+	}
+}
+func (client DBTrustedClients) Proto() *v1.DBTrustedClients {
+	return &v1.DBTrustedClients{
+		Id:                 uint32(client.ID),
+		ClientEndpointAddr: client.ClientEndpointAddr,
+		ApplicationIds:     convertToUint32Slice(client.ApplicationIDs),
+	}
+}
+func (sel HardwareConfig) Proto() *v1.HardwareConfig {
+	hw_config := v1.HardwareConfig{
+		Id:       uint32(sel.ID),
+		ConfigId: uint32(sel.ConfigID),
+		Device:   sel.Device,
+		Cidr:     sel.IpCidr,
+	}
+	return &hw_config
+}
+
+func (config DBNodeConfig) Proto() *v1.DBNodeConfig {
+	var hwConfigs []*v1.HardwareConfig
+	for _, hw := range config.HardwareConfig {
+		hwConfigs = append(hwConfigs, hw.Proto()) // Assuming HardwareConfig has a Proto() method
+	}
+
+	var applications []*v1.DBApplication
+	for _, app := range config.Application {
+		applications = append(applications, app.Proto()) // Assuming DBApplication has a Proto() method
+	}
+
+	return &v1.DBNodeConfig{
+		Id:           uint32(config.ID),
+		LogLevel:     uint32(config.LogLevel),
+		ConfigName:   config.ConfigName,
+		Version:      uint32(config.Version),
+		HwConfig:     hwConfigs,
+		Whitelist:    config.Whitelist.Proto(), // Assuming DBWhitelist has a Proto() method
+		Applications: applications,
+	}
+}
+func (app DBApplication) Proto() *v1.DBApplication {
+	return &v1.DBApplication{
+		Id:                 uint32(app.ID),
+		ConfigId:           uint32(app.NodeConfigID),
+		State:              app.State,
+		Type:               v1.ApplicationType(app.Type),
+		ServerEndpointAddr: app.ServerEndpointAddr,
+		ClientEndpointAddr: app.ClientEndpointAddr,
+		Ep1Id:              uint32(app.Ep1ID),
+		Ep2Id:              uint32(app.Ep2ID),
+		LogLevel:           uint32(app.LogLevel),
+	}
+}
+func (node DBNode) Proto() v1.DBNode {
+	var configs []*v1.DBNodeConfig
+	for _, config := range node.Config {
+		configs = append(configs, config.Proto())
+	}
+	return v1.DBNode{
+		Id:               uint32(node.ID),
+		SerialNumber:     node.SerialNumber,
+		NodeNetworkIndex: uint32(node.NodeNetworkIndex),
+		Locality:         node.Locality,
+		LastSeen:         timestamppb.New(node.LastSeen),
+		Configs:          configs,
+	}
+}
+func (sel SelectedConfiguration) Proto() v1.SelectedConfiguration {
+	node := sel.Node.Proto()
+	return v1.SelectedConfiguration{
+		NodeId:    uint64(sel.NodeID),
+		Node:      &node,
+		ConfigId:  uint64(sel.ConfigID),
+		Config:    sel.Config.Proto(),
+		NodeState: v1.NodeState(sel.NodeState),
+	}
 }
