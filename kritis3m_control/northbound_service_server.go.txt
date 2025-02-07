@@ -226,10 +226,10 @@ func (ks *Kritis3m_Scale) GetApplication(ctx context.Context, req *v1.GetApplica
 		return nil, fmt.Errorf("failed to convert struct to map: %v", err)
 	}
 
-	var getApplication []*types.DBApplication
+	var getApplication []*types.Proxy
 	if includeAssociated {
-		getApplication, err = database.Read(ks.db.DB, func(rx *gorm.DB) ([]*types.DBApplication, error) {
-			var application []*types.DBApplication
+		getApplication, err = database.Read(ks.db.DB, func(rx *gorm.DB) ([]*types.Proxy, error) {
+			var application []*types.Proxy
 			query := rx.Preload("TrustedClients").Preload("Ep1").Preload("Ep2").Preload("Whitelist").Preload("HardwareConfig")
 			if getAll {
 				err := query.Find(&application).Error
@@ -245,8 +245,8 @@ func (ks *Kritis3m_Scale) GetApplication(ctx context.Context, req *v1.GetApplica
 			return application, nil
 		})
 	} else {
-		getApplication, err = database.Read(ks.db.DB, func(rx *gorm.DB) ([]*types.DBApplication, error) {
-			var application []*types.DBApplication
+		getApplication, err = database.Read(ks.db.DB, func(rx *gorm.DB) ([]*types.Proxy, error) {
+			var application []*types.Proxy
 			query := rx
 			if getAll {
 				err := query.Find(&application).Error
@@ -393,8 +393,72 @@ func (ks *Kritis3m_Scale) GetHardwareConfig(ctx context.Context, req *v1.GetHard
 
 	return response, nil
 }
+
 func (ks *Kritis3m_Scale) GetTrustedClients(ctx context.Context, req *v1.GetTrustedClientsRequest) (*v1.GetTrustedClientsResponse, error) {
-	return nil, nil
+	var includeAssociated bool = false
+	var getAll bool = false
+
+	if req.Queryoptions != nil {
+		includeAssociated = req.Queryoptions.IncludeAssociatons
+		getAll = req.Queryoptions.GetAll
+	}
+
+	queryParams, err := structToMap(req.TrustedClients)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert struct to map: %v", err)
+	}
+
+	var getTrustedClients []*types.DBTrustedClients
+	if includeAssociated {
+		getTrustedClients, err = database.Read(ks.db.DB, func(rx *gorm.DB) ([]*types.DBTrustedClients, error) {
+			var trustedClients []*types.DBTrustedClients
+			query := rx.Preload("AssociatedEntities") // Adjust the preload associations as needed
+			if getAll {
+				err := query.Find(&trustedClients).Error
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				err := query.Where(queryParams).First(&trustedClients).Error
+				if err != nil {
+					return nil, err
+				}
+			}
+			return trustedClients, nil
+		})
+	} else {
+		getTrustedClients, err = database.Read(ks.db.DB, func(rx *gorm.DB) ([]*types.DBTrustedClients, error) {
+			var trustedClients []*types.DBTrustedClients
+			query := rx
+			if getAll {
+				err := query.Find(&trustedClients).Error
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				err := query.Where(queryParams).First(&trustedClients).Error
+				if err != nil {
+					return nil, err
+				}
+			}
+			return trustedClients, nil
+		})
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("database query failed: %v", err)
+	}
+	var returnvalue []*v1.DBTrustedClients
+	for _, trustedClient := range getTrustedClients {
+		v1_trustedClient := trustedClient.Proto()
+		returnvalue = append(returnvalue, v1_trustedClient)
+	}
+
+	response := &v1.GetTrustedClientsResponse{
+		TrustedClients: returnvalue,
+	}
+
+	return response, nil
 }
 func (ks *Kritis3m_Scale) GetEndpointConfig(ctx context.Context, req *v1.GetEndpointConfigRequest) (*v1.GetEndpointConfigResponse, error) {
 }

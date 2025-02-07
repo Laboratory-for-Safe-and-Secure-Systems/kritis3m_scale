@@ -165,20 +165,20 @@ func parse_endpoint(ep_yaml *KS_EndpointConfig) asl.EndpointConfig {
 		}
 	}
 	//hybrid signature mode
-	mode := ep_yaml.HybridSignatureMode
-	if mode == "HYBRID_SIGNATURE_MODE_DEFAULT" {
-		endpoint_config.HybridSignatureMode = asl.HYBRID_SIGNATURE_MODE_DEFAULT
-	} else if mode == "HYBRID_SIGNATURE_MODE_NATIVE" {
-		endpoint_config.HybridSignatureMode = asl.HYBRID_SIGNATURE_MODE_NATIVE
-	} else if mode == "HYBRID_SIGNATURE_MODE_ALTERNATIVE" {
-		endpoint_config.HybridSignatureMode = asl.HYBRID_SIGNATURE_MODE_ALTERNATIVE
-	} else if mode == "HYBRID_SIGNATURE_MODE_BOTH" {
-		endpoint_config.HybridSignatureMode = asl.HYBRID_SIGNATURE_MODE_BOTH
-	} else if mode == "" {
-		panic("signature not provided")
-	} else {
-		panic("signature mode bad format ")
-	}
+	// mode := ep_yaml.HybridSignatureMode
+	// if mode == "HYBRID_SIGNATURE_MODE_DEFAULT" {
+	// 	endpoint_config.HybridSignatureMode = asl.HYBRID_SIGNATURE_MODE_DEFAULT
+	// } else if mode == "HYBRID_SIGNATURE_MODE_NATIVE" {
+	// 	endpoint_config.HybridSignatureMode = asl.HYBRID_SIGNATURE_MODE_NATIVE
+	// } else if mode == "HYBRID_SIGNATURE_MODE_ALTERNATIVE" {
+	// 	endpoint_config.HybridSignatureMode = asl.HYBRID_SIGNATURE_MODE_ALTERNATIVE
+	// } else if mode == "HYBRID_SIGNATURE_MODE_BOTH" {
+	// 	endpoint_config.HybridSignatureMode = asl.HYBRID_SIGNATURE_MODE_BOTH
+	// } else if mode == "" {
+	// 	panic("signature not provided")
+	// } else {
+	// 	panic("signature mode bad format ")
+	// }
 	//device cert:
 	//check if path exists
 	if ep_yaml.DeviceCertificateChain != "" {
@@ -200,16 +200,17 @@ func parse_endpoint(ep_yaml *KS_EndpointConfig) asl.EndpointConfig {
 	} else {
 		panic("private key 1 is a mandatory field")
 	}
-	if ep_yaml.Pin != "" {
-		endpoint_config.PKCS11.LongTermCryptoModule.Pin = ep_yaml.Pin
-	}
 
-	if ep_yaml.SecureElementMiddlewarePath != "" {
-		endpoint_config.PKCS11.LongTermCryptoModule.Path = ep_yaml.SecureElementMiddlewarePath
-	} else {
-		log.Info().Msg("no smart card used. secure middleware path empty")
-	}
-
+	// if ep_yaml.Pin != "" {
+	// 	endpoint_config.PKCS11.LongTermCryptoModule.Pin = ep_yaml.Pin
+	// }
+	//
+	// if ep_yaml.SecureElementMiddlewarePath != "" {
+	// 	endpoint_config.PKCS11.LongTermCryptoModule.Path = ep_yaml.SecureElementMiddlewarePath
+	// } else {
+	// 	log.Info().Msg("no smart card used. secure middleware path empty")
+	// }
+	//
 	if ep_yaml.PrivateKey.PrivateKey2Path != "" {
 		panic("second private key not supported yet. Please leave private key 2 empty")
 	}

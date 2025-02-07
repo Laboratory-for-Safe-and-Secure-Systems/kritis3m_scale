@@ -42,18 +42,20 @@ func NewKritis3mScaleDatabase(
 
 	dbConn.Logger.LogMode(5) // Log detailed GORM output
 
-	dbConn.AutoMigrate(&types.DBIdentity{})
-	dbConn.AutoMigrate(&types.DBNode{},
-		&types.DBNodes{},
-		&types.DBApplication{},
-		&types.DBIdentity{},
-		&types.DBNode{},
+	dbConn.AutoMigrate(
+		&types.Group{},
+		&types.Node{},
+		&types.Proxy{},
 		&types.HardwareConfig{},
-		&types.DBWhitelist{},
-		&types.DBNodeConfig{},
-		&types.DBTrustedClients{},
-		&types.SelectedConfiguration{},
-		&types.DBAslEndpointConfig{},
+		&types.EndpointConfig{},
+		&types.Identity{},
+
+		&types.UpdateGroup{},
+		&types.UpdateNode{},
+		&types.UpdateProxy{},
+		&types.UpdateHardwareConfig{},
+		&types.UpdateEndpointConfig{},
+		&types.UpdateIdentity{},
 	)
 
 	db := KSDatabase{

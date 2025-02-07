@@ -4,29 +4,18 @@ import (
 	// "io"
 	// "log"
 
-	"encoding/json"
-	"fmt"
-	"io"
-	"net"
-	"os"
-	"strings"
-	"time"
-
 	asl "github.com/Laboratory-for-Safe-and-Secure-Systems/go-asl"
-	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog"
+	// "github.com/gin-gonic/gin"
+	// "github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
 	// "os"
 
 	"net/http"
 
-	"github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/kritis3m_control/controller"
 	"github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/kritis3m_control/db"
-	"github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/kritis3m_control/node_server"
-	"github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/kritis3m_control/service"
+	"github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/kritis3m_control/grpc"
 	"github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/kritis3m_control/types"
-	"github.com/Laboratory-for-Safe-and-Secure-Systems/kritis3m_scale/kritis3m_control/util"
 )
 
 //tasks: start server
@@ -56,365 +45,23 @@ func NewKritis3m_scale(cfg *types.Config) (*Kritis3m_Scale, error) {
 		log.Err(err).Msg("error initing db")
 		return nil, err
 	}
+
+	grpc.NewNorthboundService(app.db.DB, &gormlog)
+
 	// app.log_db, err = db.NewLogDatabase(cfg.Log_Database)
 
-	serv_log := service.NewLogServiceImpl(app.log_db)
-	serv_reg := service.NewNodeRegisterServiceImpl(app.db)
-	ctrl_log := controller.NewLogControllerImpl(serv_log)
-
-	ctrl_reg := controller.NewNodeRegisterControllerImpl(serv_reg)
-
-	ginLogger := log.With().Str("service", "gin").Logger().Level(app.cfg.NodeServer.Log.Level)
-	router := node_server.Init(ctrl_log, ctrl_reg, ginLogger, cfg.NodeServer.GinMode)
+	// ginLogger := log.With().Str("service", "gin").Logger().Level(app.cfg.NodeServer.Log.Level)
 
 	err = asl.ASLinit(&cfg.ASLConfig)
 	if err != nil {
 		log.Err(err).Msg("err asl init")
 		panic(err)
 	}
-	app.server = http.Server{
-		Handler: router,
-	}
-	app.insecure_server = http.Server{
-		Handler: router}
+	// app.server = http.Server{
+	// 	Handler: router,
+	// }
+	// app.insecure_server = http.Server{
+	// 	Handler: router}
+
 	return &app, nil
 }
-
-func (ks *Kritis3m_Scale) Import() {
-	path := ks.cfg.ACL.PolicyPath
-	path = util.AbsolutePathFromConfigPath(path)
-	jsonFile, err := os.Open(path)
-	if err != nil {
-		fmt.Println("error occured")
-	}
-	defer jsonFile.Close()
-	var parsed types.ImportStructure
-	bytevalue, _ := io.ReadAll(jsonFile)
-	err = json.Unmarshal(
-		[]byte(bytevalue),
-		&parsed,
-	)
-	if err != nil {
-		log.Err(err)
-		return
-	}
-
-	_, err = ks.db.AddIdentitys(parsed.Identites)
-	if err != nil {
-		log.Err(err).Msg("error occured during import")
-		return
-	}
-
-	_, err = ks.db.AddEPs(parsed.CryptoConfig)
-	if err != nil {
-		log.Err(err).Msg("error occured during import")
-		return
-	}
-
-	for _, node := range parsed.Node {
-		err = ks.db.AddNode(node)
-		if err != nil {
-			log.Err(err).Msg("cant add node to db")
-		}
-		for _, config := range node.Config {
-			// Ensure config.Application is a slice (if it's not, adjust accordingly)
-			for _, app := range config.Application {
-				_, err = ks.db.AddTrustedClientsto_Application(app, config.Whitelist.TrustedClients)
-				if err != nil {
-					log.Err(err).Msg("can't update trusted clients")
-				}
-			}
-		}
-	}
-}
-
-func (ks *Kritis3m_Scale) Listconfigs(cfg_id int, includeAppls bool) {
-	var configs []*types.DBNodeConfig
-	var err error
-	if cfg_id == -1 {
-		configs, err = ks.db.GetAllConfigs()
-		if err != nil {
-			log.Err(err).Msg("error getting nodes")
-			return
-		}
-	} else {
-		config, err := ks.db.GetConfigby_ID(uint(cfg_id))
-		if err != nil {
-			log.Err(err).Msg("error getting node")
-			return
-		}
-		configs = append(configs, config)
-	}
-
-	// Print the table header
-	if includeAppls {
-		fmt.Printf("%-10s %-20s %-10s %-10s %-10s %-20s %-20s %-10s %-10s %-10s\n",
-			"ID", "Version", "Whitelist ID", "Appl ID", "State", "Type", "Listening IP:Port", "Client IP:Port", "Ep1 ID", "Ep2 ID")
-	} else {
-		fmt.Printf("%-10s %-20s %-10s\n", "ID", "Version", "Whitelist ID")
-	}
-
-	// Iterate over each configuration
-	for _, config := range configs {
-		if includeAppls {
-			// Retrieve applications related to this config
-			appls, err := ks.db.GetApplicationsByCfgID(config.ID)
-			if err != nil {
-				log.Err(err).Msgf("couldn't get applications of config with ID %d", config.ID)
-				return
-			}
-
-			// Print each application for the current configuration
-			if len(appls) > 0 {
-				for _, appl := range appls {
-					fmt.Printf("%-10d %-20d %-10d %-10d %-10t %-20s %-20s %-20s %-10d %-10d\n",
-						config.ID, config.Version, config.Whitelist.ID,
-						appl.ID, appl.State, appl.Type.String(), appl.ServerEndpointAddr, appl.ClientEndpointAddr, appl.Ep1ID, appl.Ep2ID)
-				}
-			} else {
-				// No applications, print config without app details
-				fmt.Printf("%-10d %-20d %-10d %-10s %-10s %-10s %-20s %-20s %-10s %-10s\n",
-					config.ID, config.Version, config.Whitelist.ID,
-					"N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A")
-			}
-		} else {
-			// Print configuration without application details
-			fmt.Printf("%-10d %-20d %-10d\n", config.ID, config.Version, config.Whitelist.ID)
-		}
-	}
-}
-
-func (ks *Kritis3m_Scale) ListActive() {
-	selectedCfgs, err := ks.db.GetActiveConfigs()
-	if err != nil {
-		log.Err(err).Msg("can't get active configs")
-		return
-	}
-
-	// Print the table header
-	fmt.Printf("%-10s %-10s\n", "Node ID", "Config ID")
-	fmt.Println(strings.Repeat("-", 20)) // Print a separator line
-
-	// Iterate over each selected configuration and print it
-	for _, cfg := range selectedCfgs {
-		fmt.Printf("%-10d %-10d\n", cfg.NodeID, cfg.ConfigID)
-	}
-}
-
-func (ks *Kritis3m_Scale) ActivateConfig(node_id uint, cfg_id uint) {
-	cfg, err := ks.db.GetConfigby_ID(cfg_id)
-	if err != nil {
-		log.Err(err).Msgf("couldnt fetch matching configuration of cfg_id %d", cfg_id)
-		return
-	}
-
-	if cfg.NodeID != node_id {
-		log.Error().Msgf("cfg with id %d, does not belong to node with id %d", cfg_id, node_id)
-		return
-	}
-
-	node, err := ks.db.GetNodeby_ID(node_id)
-	if err != nil {
-		return
-	}
-
-	ks.db.ActivateConfig_byCfgID(cfg_id, node.SerialNumber)
-}
-
-// launches a GIN server with Kritis3m_api
-func (ks *Kritis3m_Scale) ListNodes(id int, includeConfig bool) {
-	var nodes []*types.DBNode
-	var err error
-	if id == -1 {
-		nodes, err = ks.db.GetAllNodes()
-		if err != nil {
-			log.Err(err).Msg("error getting nodes")
-			return
-		}
-	} else {
-		node, err := ks.db.GetNodeby_ID(uint(id))
-		if err != nil {
-			log.Err(err).Msg("error getting node")
-			return
-		}
-		nodes = append(nodes, node)
-	}
-	// Print the table header
-	if includeConfig {
-		fmt.Printf("%-10s %-20s %-15s %-10s\n", "ID", "Serial Number", "Network Index", "Config IDs")
-	} else {
-		fmt.Printf("%-10s %-20s %-15s\n", "ID", "Serial Number", "Network Index")
-	}
-
-	// Print each node
-	for _, node := range nodes {
-		configs, err := ks.db.GetAllConfigsOfNodeby_ID(node.ID)
-		if err != nil {
-			log.Err(err).Msgf("couldn't get configs of node with id %d", node.ID)
-			return
-		}
-
-		if includeConfig {
-			// Check if there are any configurations for the node
-			if len(configs) > 0 {
-				// Print the node details with the first config ID
-				fmt.Printf("%-10d %-20s %-15d %-10d\n", node.ID, node.SerialNumber, node.NodeNetworkIndex, configs[0].ID)
-				// Print any additional config IDs on new lines with aligned columns
-				for _, config := range configs[1:] {
-					fmt.Printf("%-10s %-20s %-15s %-10d\n", "", node.SerialNumber, "", config.ID)
-				}
-			} else {
-				// If no config IDs exist for the node
-				fmt.Printf("%-10d %-20s %-15d %-10s\n", node.ID, node.SerialNumber, node.NodeNetworkIndex, "N/A")
-			}
-		} else {
-			fmt.Printf("%-10d %-20s %-15d\n", node.ID, node.SerialNumber, node.NodeNetworkIndex)
-		}
-	}
-}
-func (ks *Kritis3m_Scale) switchCrypto(cfg_id uint, node_id uint) bool {
-	// Fetch the node by ID
-	node, err := ks.db.GetNodeby_ID(node_id)
-	if err != nil {
-		log.Err(err).Msg("unknown node_id")
-		return false
-	}
-
-	configs, err := ks.db.GetAllConfigsOfNodeby_ID(node_id)
-	if err != nil {
-		log.Err(err).Msgf("no configs for node with id %d", node_id)
-		return false
-	}
-
-	// Check if the configuration belongs to the node
-	for _, configs := range configs {
-		if configs.ID == cfg_id {
-			err = ks.db.ActivateConfig_byCfgID(cfg_id, node.SerialNumber)
-			return err == nil
-		}
-	}
-
-	log.Error().Uint("cfg_id", cfg_id).Uint("node_id", node_id).Msg("Configuration ID does not belong to the node")
-	return false
-}
-
-func (ks *Kritis3m_Scale) Serve() {
-	log.Info().Msg("in serve function")
-	go func() {
-		gin.SetMode(gin.DebugMode)
-		router := gin.New()
-		log.Info().Msg("in handler for ui")
-		router.Use(gin.Recovery())
-
-		router.POST("/api/trigger", func(c *gin.Context) {
-			type Payload struct {
-				CfgID  uint `json:"cfg_id" binding:"required"`
-				NodeID uint `json:"node_id" binding:"required"`
-			}
-			log.Info().Msg("invoked trigger change crypto")
-
-			var trigger_payload []*Payload
-			if err := c.BindJSON(&trigger_payload); err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{
-					"error": "Invalid JSON payload",
-					"msg":   err.Error(),
-				})
-				return
-			}
-			if len(trigger_payload) < 3 {
-				log.Error().Msg("payload is empty")
-				c.JSON(http.StatusBadRequest, gin.H{
-					"message": "Empty payload",
-				})
-				return
-			}
-
-			var activatedNodes []uint
-			var errorNodes []uint
-
-			for _, payload := range trigger_payload {
-				if ks.switchCrypto(payload.CfgID, payload.NodeID) {
-					log.Info().Msgf("node with id %d has now cfg with cfg id %d", payload.NodeID, payload.CfgID)
-					activatedNodes = append(activatedNodes, payload.NodeID)
-				} else {
-					log.Error().Msgf("node with id %d failed assign cfg with cfg id %d", payload.NodeID, payload.CfgID)
-					errorNodes = append(errorNodes, payload.NodeID)
-				}
-			}
-
-			if len(errorNodes) > 0 {
-				c.JSON(http.StatusBadRequest, gin.H{
-					"message":      "Some configurations could not be activated",
-					"activated":    activatedNodes,
-					"failed_nodes": errorNodes,
-				})
-				return
-			}
-			sel_nodes, err := ks.db.GetActiveConfigs()
-			if err != nil {
-				log.Error().Msg("config not activated")
-			}
-
-			c.JSON(http.StatusOK, gin.H{
-				"message":         "All configurations activated successfully",
-				"activated_nodes": activatedNodes,
-				"selnodes":        sel_nodes,
-			})
-		})
-
-		if err := router.Run(":8181"); err != nil {
-			log.Fatal().Err(err).Msg("Failed to start the server")
-		}
-	}()
-
-	go func() {
-		serverEndpoint := asl.ASLsetupServerEndpoint(&ks.cfg.NodeServer.ASL_Endpoint)
-		if serverEndpoint == nil {
-			fmt.Println("Error setting up server endpoint")
-			os.Exit(1)
-		}
-		defer asl.ASLFreeEndpoint(serverEndpoint)
-		addr, err := net.ResolveTCPAddr("tcp", ks.cfg.NodeServer.Address)
-		if err != nil {
-			log.Err(err).Msg("cant parse ip address correctly")
-			log.Fatal()
-		}
-		tcpListener, _ := net.ListenTCP("tcp", addr)
-
-		aslListener := node_server.ASLListener{
-			L:  tcpListener,
-			Ep: serverEndpoint,
-		}
-		ks.server.Serve(aslListener)
-	}()
-
-	select {}
-}
-func CustomLoggerMiddleware(logger zerolog.Logger) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		start := time.Now()
-
-		// Process the request
-		c.Next()
-
-		// Use the provided logger to log the request details
-		duration := time.Since(start)
-		logger.Info().
-			Str("method", c.Request.Method).
-			Str("path", c.Request.URL.Path).
-			Int("status", c.Writer.Status()).
-			Str("client_ip", c.ClientIP()).
-			Dur("duration", duration).
-			Msg("Request handled")
-	}
-}
-
-/*
-This function enablesthe app.
-This is the point where the state and the tooling is obtained
-In this current state, just the config is loaded.
-TODO:
-- Database init
-- Ip allocator init
-- Rest API init
-*/
